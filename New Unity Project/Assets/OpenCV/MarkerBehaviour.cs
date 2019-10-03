@@ -33,6 +33,8 @@ public class MarkerBehaviour : MonoBehaviour
     private MarkerData currentMarkerData;
     private MarkerPose currentMarkerPose;
 
+    private Matrix4x4 currentTransformationMatrix;
+
     private void Awake()
     {
         MarkerManager.RegisterMarker(this);
@@ -42,7 +44,7 @@ public class MarkerBehaviour : MonoBehaviour
     {
         currentMarkerData.corners = corners;
         currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(GetTranformationMatrix(renderTexWidth,renderTexHeight));
+        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight));
     }
 
 
@@ -83,19 +85,23 @@ public class MarkerBehaviour : MonoBehaviour
         return markerId;
     }
 
+    public Matrix4x4 GetMatrix()
+    {
+        return currentTransformationMatrix;
+    }
 
     private void UpdateMarkerPose(Matrix4x4 transformMatrix)
     {
         Matrix4x4 matrixY = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
         Matrix4x4 matrixZ = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
-        Matrix4x4 matrix = matrixY * transformMatrix * matrixZ;
+        currentTransformationMatrix = matrixY * transformMatrix * matrixZ;
 
-        currentMarkerPose.position = ARucoUnityHelper.GetPosition(matrix);
-        currentMarkerPose.rotation = ARucoUnityHelper.GetQuaternion(matrix);
-        currentMarkerPose.scale = ARucoUnityHelper.GetScale(matrix);
+        currentMarkerPose.position = ARucoUnityHelper.GetPosition(currentTransformationMatrix);
+        currentMarkerPose.rotation = ARucoUnityHelper.GetQuaternion(currentTransformationMatrix);
+        currentMarkerPose.scale = ARucoUnityHelper.GetScale(currentTransformationMatrix);
     }
 
-    private Matrix4x4 GetTranformationMatrix(float width, float height)
+    private Matrix4x4 CreateTransformationMatrix(float width, float height)
     {
         if (currentMarkerData.corners.Length == 0)
         {

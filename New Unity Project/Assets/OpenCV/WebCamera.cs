@@ -23,6 +23,7 @@ public abstract class WebCamera : MonoBehaviour
     private Texture2D renderedTexture = null;
 
     public bool useFrontCamera = false;
+    public int textureFps = 60;
 
     /// <summary>
     /// A kind of workaround for macOS issue: MacBook doesn't state it's webcam as frontal
@@ -71,7 +72,7 @@ public abstract class WebCamera : MonoBehaviour
                 {
                     webCamDevice = WebCamTexture.devices[0];
                 }
-                webCamTexture = new WebCamTexture(webCamDevice.Value.name);
+                webCamTexture = new WebCamTexture(webCamDevice.Value.name,(int)cameraMaxTextureResolution.x,(int)cameraMaxTextureResolution.y,textureFps);
 
                 //Debug.Log(webCamTexture.width);
                 //Debug.Log(webCamTexture.height);

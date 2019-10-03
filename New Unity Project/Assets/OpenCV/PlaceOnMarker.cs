@@ -6,7 +6,6 @@ public class PlaceOnMarker : MonoBehaviour
 {
     public MarkerBehaviour marker;
     public GameObject obj;
-    float dtime = 0;
     private void Start()
     {
         obj.SetActive(false);
@@ -15,6 +14,11 @@ public class PlaceOnMarker : MonoBehaviour
         marker.OnMarkerLost.AddListener(delegate { obj.SetActive(false); });
     }
     private void Update()
+    {
+        UpdatePose();
+    }
+
+    private void UpdatePose()
     {
         transform.position = marker.GetCurrentPose().position;
         transform.rotation = marker.GetCurrentPose().rotation;
