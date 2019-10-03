@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+    <head>
+        <!--Document title is project name-->
+        <title>NatCam Scripting Reference on Calligraphy</title>
+        <!--Extra information-->
+        <meta name='description' content='NatCam API documentation on Calligraphy'> <!--Populate from Calligraphy-->
+        <meta name='keywords' content='NatCam, Minigram, Calligraphy, Unity'> <!--Populate from Calligraphy-->
+        <meta name='author' content='Calligraphy by Yusuf Olokoba'>
+        <meta charset='UTF-8'>
+        <!--Style sheet-->
+        <link rel='stylesheet' href='../Styles/memberstyles.css'>
+    </head>
+	
+	<body>
+        <h1 class='blockname'><a href='../Groups/NatCam.html'>NatCam</a>.PreviewBuffer</h1>
+        <p1 class='faintname'>public static bool PreviewBuffer (IntPtr& ptr, Int32& width, Int32& height, Int32& size)<b>;</b></p1>
+        <br>
+        <br>
+        <h2>Description</h2>
+        <p1>Get the preview buffer for the current frame. This returns the native handle to the preview data. 
+        When performing operations on the preview data, you must first copy out the data into a temporary buffer which you own.<br></p1>
+        <br>
+        <br>
+        
+        <!--Code example-->
+        <!--Must not be indented-->
+        <!--There must be no space between the text and the pre tags-->
+
+<code>
+<pre>
+<font color='green'>//-------------- C# ----------------</font>
+
+using UnityEngine;
+using System;
+using NatCamU.Core;
+
+public class SwizzleCamera : NatCamBehaviour {
+
+    <font color='blue'>#if NATCAM_PROFESSIONAL</font
+
+    Texture2D swizzleTexture;
+
+    <font color='green'> // Define the C++ method in a library, libNativeCodeExample.so</font>
+    [DllImport("NativeCodeExample")]
+    static extern void SwizzleToBGRA (out IntPtr swizzled, IntPtr buffer, int width, int height, UIntPtr size); <font color='green'> //size_t in C++ to guarantee 32bits</font>
+
+    public override void OnPreviewUpdate () {
+        <font color='green'>// Declare buffer properties</font>
+        IntPtr handle, swizzled; int width, height, size;
+        <font color='green'>// Read the preview buffer</font>
+        if (!NatCam.PreviewBuffer(out handle, out width, out height, out size)) return;
+        <font color='green'>// Call into the native method</font>
+        SwizzleToBGRA(out swizzled, handle, width, height, size);
+        <font color='green'>// Create the texture</font>
+        swizzleTexture = swizzleTexture ? swizzleTexture : new Texture2D(width, height, TextureFormat.RGBA32, false, false);
+        <font color='green'>// Load texture data</font>
+        swizzleTexture.LoadRawTextureData(swizzled, size);
+        <font color='green'>// Apply</font>
+        swizzleTexture.Apply();
+        <font color='green'>// Set rawImage texture</font>
+        preview.texture = swizzleTexture;
+    }
+    <font color='blue'>#endif</font>
+}
+
+
+<font color='green'>//-------------- C++ ----------------</font>
+
+#include <cstring>
+
+typedef unsigned char byte; <font color='green'>//To make life easier</font>
+
+static byte *input = NULL, *output = NULL;
+
+extern "C" void SwizzleToBGRA (void** swizzledBuffer, const void* buffer, const int width, const int height, const size_t size) {
+    <font color='green'>// Immediately copy out the data</font>
+    input = input ? input : new byte[size];
+    memcpy(input, buffer, size);
+    <font color='green'>// Create an output buffer</font>
+    output = output ? output : new byte[size];
+    <font color='green'>// Keep track of our offsets</font>
+    int offset = 0;
+    <font color='green'>// Iterate</font>
+    for (int x = 0; x < width; x++) for (int y = 0; y < height; y++, offset += 4) {
+        <font color='green'>// Swizzle</font>
+        output[offset] = input[offset + 2];     <font color='green'>//B</font>
+        output[offset + 1] = input[offset + 1]; <font color='green'>//G</font>
+        output[offset + 2] = input[offset];     <font color='green'>//R</font>
+        output[offset + 3] = input[offset + 3]; <font color='green'>//A</font>
+    }
+    <font color='green'>// Assign the output buffer</font>
+    *swizzledBuffer = output;
+}
+        </pre>
+</code>
+<br>
+        
+        
+        <!--See Also-->
+        
+        
+        <!--Copyright tag-->
+        <br>
+        <hr>
+        <p1 class='copyright'><small>Copyright (c) Yusuf Olokoba 2016</small></p1>
+        
+	</body>
+</html>        
+        

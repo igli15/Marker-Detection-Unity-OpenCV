@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+    <head>
+        <!--Document title is project name-->
+        <title>NatCam Scripting Reference on Calligraphy</title>
+        <!--Extra information-->
+        <meta name='description' content='NatCam API documentation on Calligraphy'> <!--Populate from Calligraphy-->
+        <meta name='keywords' content='NatCam, Minigram, Calligraphy, Unity'> <!--Populate from Calligraphy-->
+        <meta name='author' content='Calligraphy by Yusuf Olokoba'>
+        <meta charset='UTF-8'>
+        <!--Style sheet-->
+        <link rel='stylesheet' href='../Styles/memberstyles.css'>
+    </head>
+	
+	<body>
+        <h1 class='blockname'><a href='../Groups/NatCamBehaviour.html'>NatCamBehaviour</a>.OnPreviewUpdate</h1>
+        <p1 class='faintname'>public  void OnPreviewUpdate ()<b>;</b></p1>
+        <br>
+        <br>
+        <h2>Description</h2>
+        <p1>Method called on every new camera preview frame.</p1>
+        <br>
+        <br>
+        
+        <!--Code example-->
+        <!--Must not be indented-->
+        <!--There must be no space between the text and the pre tags-->
+
+<code>
+<pre>
+public class PreviewFramerate : NatCamBehaviour {
+    
+    public Text text; <font color='green'>//UI text to show frame rate</font>
+
+    private float lastTime, delta, framerate = 30f;
+
+    <font color='green'>//OnPreviewUpdate is called once per preview frame</font>
+    public override void OnPreviewUpdate () {
+        <font color='green'>//Calculate time delta</font>
+        delta = Time.unscaledTime - lastTime;
+        <font color='green'>//Check that delta isn't zero</font>
+        if (delta == 0f) return;
+        <font color='green'>//Calculate the framerate</font>
+        framerate = 1f / delta;
+        <font color='green'>//Display the framerate</font>
+        text.text = framerate.ToString("F2");
+        <font color='green'>//Update last time</font>
+        lastTime = Time.unscaledTime;
+    }
+}
+        </pre>
+</code>
+<br>
+        
+        
+        <!--See Also-->
+        
+        
+        <!--Copyright tag-->
+        <br>
+        <hr>
+        <p1 class='copyright'><small>Copyright (c) Yusuf Olokoba 2016</small></p1>
+        
+	</body>
+</html>        
+        

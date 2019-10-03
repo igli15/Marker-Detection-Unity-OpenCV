@@ -1,0 +1,206 @@
+fileFormatVersion: 2
+guid: 0b826f7b0219d2746b040f941eb4fbc0
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: BODY
+    100002: CICADA_CHROME
+    100004: CICADA_PAINT
+    100006: cicada_shadow
+    100008: DOOR_L_CHROME
+    100010: DOOR_L_MATTE
+    100012: DOOR_R_CHROME
+    100014: DOOR_R_MATTE
+    100016: front_lamp_glass
+    100018: glass
+    100020: inside
+    100022: LEFT_DOOR
+    100024: left_door_glass
+    100026: left_front_wheel
+    100028: left_rear_wheel
+    100030: rear_lamp_glass
+    100032: RIGHT_DOOR
+    100034: right_door_glass
+    100036: right_front_wheel
+    100038: right_rear_wheel
+    100040: steering_wheel
+    100042: //RootNode
+    400000: BODY
+    400002: CICADA_CHROME
+    400004: CICADA_PAINT
+    400006: cicada_shadow
+    400008: DOOR_L_CHROME
+    400010: DOOR_L_MATTE
+    400012: DOOR_R_CHROME
+    400014: DOOR_R_MATTE
+    400016: front_lamp_glass
+    400018: glass
+    400020: inside
+    400022: LEFT_DOOR
+    400024: left_door_glass
+    400026: left_front_wheel
+    400028: left_rear_wheel
+    400030: rear_lamp_glass
+    400032: RIGHT_DOOR
+    400034: right_door_glass
+    400036: right_front_wheel
+    400038: right_rear_wheel
+    400040: steering_wheel
+    400042: //RootNode
+    2100000: CICADA_PAINT
+    2100002: CICADA_DEFAULT
+    2100004: CICADA_GLASS
+    2100006: CICADA_LAMPS
+    2100008: CICADA_CHROME
+    2100010: CICADA_SHADOW
+    2300000: BODY
+    2300002: CICADA_CHROME
+    2300004: CICADA_PAINT
+    2300006: cicada_shadow
+    2300008: DOOR_L_CHROME
+    2300010: DOOR_L_MATTE
+    2300012: DOOR_R_CHROME
+    2300014: DOOR_R_MATTE
+    2300016: front_lamp_glass
+    2300018: glass
+    2300020: inside
+    2300022: LEFT_DOOR
+    2300024: left_door_glass
+    2300026: left_front_wheel
+    2300028: left_rear_wheel
+    2300030: rear_lamp_glass
+    2300032: RIGHT_DOOR
+    2300034: right_door_glass
+    2300036: right_front_wheel
+    2300038: right_rear_wheel
+    2300040: steering_wheel
+    3300000: BODY
+    3300002: CICADA_CHROME
+    3300004: CICADA_PAINT
+    3300006: cicada_shadow
+    3300008: DOOR_L_CHROME
+    3300010: DOOR_L_MATTE
+    3300012: DOOR_R_CHROME
+    3300014: DOOR_R_MATTE
+    3300016: front_lamp_glass
+    3300018: glass
+    3300020: inside
+    3300022: LEFT_DOOR
+    3300024: left_door_glass
+    3300026: left_front_wheel
+    3300028: left_rear_wheel
+    3300030: rear_lamp_glass
+    3300032: RIGHT_DOOR
+    3300034: right_door_glass
+    3300036: right_front_wheel
+    3300038: right_rear_wheel
+    3300040: steering_wheel
+    4300000: CICADA_PAINT
+    4300002: BODY
+    4300004: LEFT_DOOR
+    4300006: left_door_glass
+    4300008: DOOR_L_CHROME
+    4300010: DOOR_L_MATTE
+    4300012: RIGHT_DOOR
+    4300014: right_door_glass
+    4300016: DOOR_R_CHROME
+    4300018: DOOR_R_MATTE
+    4300020: right_front_wheel
+    4300022: right_rear_wheel
+    4300024: left_rear_wheel
+    4300026: left_front_wheel
+    4300028: glass
+    4300030: inside
+    4300032: steering_wheel
+    4300034: front_lamp_glass
+    4300036: rear_lamp_glass
+    4300038: CICADA_CHROME
+    4300040: cicada_shadow
+    7400000: Take 001
+    9500000: //RootNode
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

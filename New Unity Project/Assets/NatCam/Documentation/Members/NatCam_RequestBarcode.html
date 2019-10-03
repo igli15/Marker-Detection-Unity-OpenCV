@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+    <head>
+        <!--Document title is project name-->
+        <title>NatCam Scripting Reference on Calligraphy</title>
+        <!--Extra information-->
+        <meta name='description' content='NatCam API documentation on Calligraphy'> <!--Populate from Calligraphy-->
+        <meta name='keywords' content='NatCam, Minigram, Calligraphy, Unity'> <!--Populate from Calligraphy-->
+        <meta name='author' content='Calligraphy by Yusuf Olokoba'>
+        <meta charset='UTF-8'>
+        <!--Style sheet-->
+        <link rel='stylesheet' href='../Styles/memberstyles.css'>
+    </head>
+	
+	<body>
+        <h1 class='blockname'><a href='../Groups/NatCam.html'>NatCam</a>.RequestBarcode</h1>
+        <p1 class='faintname'>public static void RequestBarcode (<a href='../Groups/MetadataCallback.html'>MetadataCallback</a> callback, <a href='../Groups/BarcodeFormat.html'>BarcodeFormat</a> format, bool detectOnce)<b>;</b></p1>
+        <br>
+        <br>
+        <h2>Description</h2>
+        <p1>Request to be notified when a barcode is detected.</p1>
+        <br>
+        <br>
+        
+        <!--Code example-->
+        <!--Must not be indented-->
+        <!--There must be no space between the text and the pre tags-->
+
+<code>
+<pre>
+void Start () {
+    <font color='green'>// Start the camera preview</font>
+    NatCam.Play(DeviceCamera.RearCamera);
+    <font color='green'>// Create an ISBN request // You can request multiple barcode formats by using bitwise OR</font>
+    NatCam.RequestBarcode(new BarcodeRequest(OnDetectedISBN, BarcodeFormat.EAN_13 | BarcodeFormat.EAN_8, false));
+}
+
+void OnDetectedISBN (Barcode code) {
+    <font color='green'>// Log what we found</font>
+    Debug.Log("Found ISBN => " + code.ToString());
+}
+    </pre>
+</code>
+<br>
+        
+        
+        <!--See Also-->
+        
+        
+        <!--Copyright tag-->
+        <br>
+        <hr>
+        <p1 class='copyright'><small>Copyright (c) Yusuf Olokoba 2016</small></p1>
+        
+	</body>
+</html>        
+        

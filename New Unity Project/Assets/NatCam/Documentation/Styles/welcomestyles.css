@@ -1,0 +1,19 @@
+
+/*Page attributes*/
+body {
+    background-color: #ffffff;
+    padding-top: 20px;
+    margin-left: 60px;
+    font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif
+}
+
+/*Classes*/
+.blockname {
+    text-align: center;
+}
+
+.faintname {
+    color: black;
+    opacity: 0.4;
+}
+        

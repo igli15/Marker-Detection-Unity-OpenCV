@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+    <head>
+        <!--Document title is project name-->
+        <title>NatCam Scripting Reference on Calligraphy</title>
+        <!--Extra information-->
+        <meta name='description' content='NatCam API documentation on Calligraphy'> <!--Populate from Calligraphy-->
+        <meta name='keywords' content='NatCam, Minigram, Calligraphy, Unity'> <!--Populate from Calligraphy-->
+        <meta name='author' content='Calligraphy by Yusuf Olokoba'>
+        <meta charset='UTF-8'>
+        <!--Style sheet-->
+        <link rel='stylesheet' href='../Styles/memberstyles.css'>
+    </head>
+	
+	<body>
+        <h1 class='blockname'><a href='../Groups/NatCamMetadata.html'>NatCamMetadata</a>.Decode</h1>
+        <p1 class='faintname'>public static void Decode (Color32[] frame, int width, int height, <a href='../Groups/IDispatch.html'>IDispatch</a> dispatch, <a href='../Groups/MetadataCallback.html'>MetadataCallback</a> callback)<b>;</b></p1>
+        <br>
+        <br>
+        <h2>Description</h2>
+        <p1>Detect barcodes in a preview frame. Supply an INatCamDispatch which will be used to invoke 
+        the callback on the corresponding thread. The callback provided will be invoked for each barcode that has been detected.<br></p1>
+        <br>
+        <br>
+        
+        <!--Code example-->
+        <!--Must not be indented-->
+        <!--There must be no space between the text and the pre tags-->
+
+<code>
+<pre>
+INatCamDispatch mainDispatch; <font color='green'>// Initialize this somewhere</font>
+
+void FindBarcodes () {
+    NatCamMetadata.Decode(
+        webCamTexture.GetPixels32(),
+        webCamTexture.width,
+        webCamTexture.height,
+        mainDispatch,
+        code => Debug.Log("Found barcode: "+code.ToString())
+    );
+}
+    </pre>
+</code>
+<br>
+        
+        
+        <!--See Also-->
+        
+        
+        <!--Copyright tag-->
+        <br>
+        <hr>
+        <p1 class='copyright'><small>Copyright (c) Yusuf Olokoba 2016</small></p1>
+        
+	</body>
+</html>        
+        

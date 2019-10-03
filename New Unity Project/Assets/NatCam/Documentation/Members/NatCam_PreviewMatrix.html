@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+    <head>
+        <!--Document title is project name-->
+        <title>NatCam Scripting Reference on Calligraphy</title>
+        <!--Extra information-->
+        <meta name='description' content='NatCam API documentation on Calligraphy'> <!--Populate from Calligraphy-->
+        <meta name='keywords' content='NatCam, Minigram, Calligraphy, Unity'> <!--Populate from Calligraphy-->
+        <meta name='author' content='Calligraphy by Yusuf Olokoba'>
+        <meta charset='UTF-8'>
+        <!--Style sheet-->
+        <link rel='stylesheet' href='../Styles/memberstyles.css'>
+    </head>
+	
+	<body>
+        <h1 class='blockname'><a href='../Groups/NatCam.html'>NatCam</a>.PreviewMatrix</h1>
+        <p1 class='faintname'>public static bool PreviewMatrix (Mat& matrix)<b>;</b></p1>
+        <br>
+        <br>
+        <h2>Description</h2>
+        <p1>Get the current preview frame as an OpenCVForUnity.Mat.</p1>
+        <br>
+        <br>
+        
+        <!--Code example-->
+        <!--Must not be indented-->
+        <!--There must be no space between the text and the pre tags-->
+
+<code>
+<pre>
+<font color='green'>// Remember to uncomment '#define OPENCV_API' in NatCam.cs in Assets>NatCamProfessional</font>
+
+using UnityEngine;
+using NatCamU.Core;
+using OpenCVForUnity;
+
+public class NatCamCV : NatCamBehaviour {
+
+    <font color='blue'>#if NATCAM_PROFESSIONAL</font>
+
+    Mat matrix;
+    Texture2D texture;
+    Color32[] colors;
+    
+    <font color='green'>// Don't display the preview from the camera, we will use OpenCV</font>
+    public override void OnPreviewStart () {}
+
+    public override void OnPreviewUpdate () {
+        <font color='green'>// Get the preview matrix for this frame</font>
+        if (!NatCam.PreviewMatrix(ref matrix)) return;
+        <font color='green'>// Check the color buffer</font>
+        colors = colors ?? new Color32[matrix.cols() * matrix.rows()];
+        <font color='green'>// Check the destination texture</font>
+        texture = texture ?? new Texture2D(matrix.cols(), matrix.rows(), TextureFormat.ARGB32, false, false);
+        <font color='green'>// Draw a diagonal line on our image</font>
+        Imgproc.line(matrix, new Point(0, 0), new Point(matrix.cols(), matrix.rows()), new Scalar(255, 0, 0, 255), 4);
+        <font color='green'>// Update our destination texture with the line drawn above</font>
+        Utils.matToTexture2D(matrix, texture, colors);
+        <font color='green'>// Set our UI Panel's RawImage texture to our destination texture</font>
+        preview.texture = texture;
+    }
+    <font color='blue'>#endif</font>
+}
+        </pre>
+</code>
+<br>
+        
+        
+        <!--See Also-->
+        
+        
+        <!--Copyright tag-->
+        <br>
+        <hr>
+        <p1 class='copyright'><small>Copyright (c) Yusuf Olokoba 2016</small></p1>
+        
+	</body>
+</html>        
+        
