@@ -8,7 +8,8 @@ using System;
 public class MarkerDetector : WebCamera
 {
     public Camera cam;
-
+    public PredefinedDictionaryName markerDictionaryType;
+    
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
@@ -26,7 +27,7 @@ public class MarkerDetector : WebCamera
     void Init()
     {
         detectorParameters = DetectorParameters.Create();
-        dictionary = CvAruco.GetPredefinedDictionary(PredefinedDictionaryName.Dict6X6_1000);
+        dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
     }
 
     // Our sketch generation function
