@@ -7,6 +7,11 @@ using System;
 
 public class MarkerDetector : WebCamera
 {
+    
+    //Events thrown each frame holding all ids found/lost
+    public static event Action<int[]> OnMarkersDetected;
+    public static event Action<int[]> OnMarkersLost;
+    
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
     
@@ -17,7 +22,7 @@ public class MarkerDetector : WebCamera
 
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
-
+    
     protected override void Start()
     {
         base.Start();  
@@ -27,13 +32,13 @@ public class MarkerDetector : WebCamera
     void Init()
     {
         detectorParameters = DetectorParameters.Create();
+        
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
     }
 
     // Our sketch generation function
     protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
     {
-
         TextureParameters.FlipHorizontally = false;
 
         img = ARucoUnityHelper.TextureToMat(input, TextureParameters);
@@ -60,6 +65,14 @@ public class MarkerDetector : WebCamera
 
         CheckIfLostMarkers(ids);
 
+        //Debug.Log(ids.Length);
+        
+        //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
+        if (ids.Length > 0 && OnMarkersDetected != null)
+        {
+            OnMarkersDetected.Invoke(ids);
+        }
+        
         for (int i = 0; i < ids.Length; i++)
         {
             if (!MarkerManager.IsMarkerRegistered(ids[i]))
@@ -120,10 +133,13 @@ public class MarkerDetector : WebCamera
             }
         }
 
+        OnMarkersLost?.Invoke(lostIds.ToArray());
+
         foreach (int i in lostIds)
         {
             allDetectedMarkers.Remove(i);
         }
         lostIds.Clear();
     }
+    
 }
