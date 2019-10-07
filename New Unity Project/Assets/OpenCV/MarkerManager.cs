@@ -28,5 +28,9 @@ public abstract class MarkerManager
         return allMakers.ContainsKey(markerId);
     }
 
+    public static bool CompareMarkers(MarkerBehaviour m1, MarkerBehaviour m2)
+    {
+        return m1.GetInstanceID() == m2.GetMarkerID();
+    }
 
 }

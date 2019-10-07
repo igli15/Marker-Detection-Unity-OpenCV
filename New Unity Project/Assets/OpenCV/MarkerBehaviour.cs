@@ -90,6 +90,12 @@ public class MarkerBehaviour : MonoBehaviour
         return currentTransformationMatrix;
     }
 
+    public void SetMarkerIdAndSize(int id,float meters)
+    {
+        markerId = id;
+        sizeInMeters = meters;
+    }
+
     private void UpdateMarkerPose(Matrix4x4 transformMatrix)
     {
         Matrix4x4 matrixY = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
