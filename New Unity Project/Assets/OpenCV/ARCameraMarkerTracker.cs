@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ARCameraMarkerTracker : ARCameraTracker
 {
-    public MarkerBehaviour trackingTarget;
+    private MarkerBehaviour trackingTarget;
 
     protected override void RepositionCamera()
     {
@@ -41,6 +41,19 @@ public class ARCameraMarkerTracker : ARCameraTracker
             // Debug.Log("ID: " + i + " " + "Distance: " + GetMarkerDistanceFromCamera(m));
         }
 
-        trackingTarget = closestMarker;
+        if (closestMarker == null) return;
+        
+        if (trackingTarget == null)
+        {
+            trackingTarget = closestMarker;
+            return;
+        }
+
+        float d1 = GetMarkerDistanceFromCamera(closestMarker);
+        float d2 = GetMarkerDistanceFromCamera(trackingTarget);
+
+        float difference = Mathf.Abs(d1 - d2);
+
+        if (difference > 2) trackingTarget = closestMarker;
     }
 }
