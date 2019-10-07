@@ -4,16 +4,15 @@ using UnityEngine;
 
 public abstract class ARCameraTracker : MonoBehaviour
 {
-    private Camera arCam;
+    //protected Camera arCam;
     
-    private bool shouldReposition = false;
+    protected bool shouldReposition = false;
     
     protected virtual void Start()
     {
         MarkerDetector.OnMarkersDetected += UpdateCameraPose;
         MarkerDetector.OnMarkersDetected += ConcentrateOnTheClosestMarker;
         MarkerDetector.OnMarkersLost += StopUpdatingCameraPose;
-        
     }
     
     protected virtual  void Update()

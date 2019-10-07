@@ -7,46 +7,40 @@ using UnityEngine;
 //Create a plane by using 4 markers representing it's corners.
 public class ARMarkerPlane : MonoBehaviour
 {
-    public int topLeftMarkerID;
-    public int topRightMarkerID;
-    public int bottomLeftMarkerID;
-    public int bottomRightMarkerID;
-
-    public float markerSizeInMeters;
+    public MarkerBehaviour topLeftMarker;
+    public MarkerBehaviour topRightMarker;
+    public MarkerBehaviour bottomLeftMarker;
+    public MarkerBehaviour bottomRightMarker;
+    
     public float planeSizeInMeters = 3;
-    
-    public static int idcounter = 0;
-    
-    [HideInInspector]
-    public int arenaId;
+
+    [HideInInspector] public int arenaID;
     
     private void Awake()
     {
-        arenaId = idcounter;
-        idcounter++;
-        
-        CreateMarkerPlane();
+        arenaID = topLeftMarker.GetMarkerID();
+        MarkerManager.RegisterMarkerPlane(this);
     }
-
+    
     public Vector3 GetCenterBasedOnACorner(MarkerBehaviour cornerMarker)
     {
-        if (topLeftMarkerID == cornerMarker.GetMarkerID())
+        if (MarkerManager.CompareMarkers(topLeftMarker,cornerMarker))
         {
             //top left to center:
             return cornerMarker.GetCurrentPose().position +
                    new Vector3(planeSizeInMeters / 2, -planeSizeInMeters / 2, 0);
         }
-        else if (topRightMarkerID == cornerMarker.GetMarkerID())
+        else if (MarkerManager.CompareMarkers(topRightMarker,cornerMarker))
         {
             return cornerMarker.GetCurrentPose().position +
                    new Vector3(-planeSizeInMeters / 2, -planeSizeInMeters / 2, 0);
         }
-        else if (bottomLeftMarkerID == cornerMarker.GetMarkerID())
+        else if (MarkerManager.CompareMarkers(bottomLeftMarker,cornerMarker))
         {
             return cornerMarker.GetCurrentPose().position +
                    new Vector3(planeSizeInMeters / 2, planeSizeInMeters / 2, 0);
         }
-        else if (bottomRightMarkerID == cornerMarker.GetMarkerID())
+        else if (MarkerManager.CompareMarkers(bottomRightMarker,cornerMarker))
         {
             return cornerMarker.GetCurrentPose().position +
                    new Vector3(-planeSizeInMeters / 2, planeSizeInMeters / 2, 0);
@@ -57,12 +51,27 @@ public class ARMarkerPlane : MonoBehaviour
         }
     }
 
-    private void CreateMarkerPlane()
+    public bool ContainsMarkerID(int id)
     {
-        gameObject.AddComponent<MarkerBehaviour>().SetMarkerIdAndSize(topLeftMarkerID,markerSizeInMeters);
-        gameObject.AddComponent<MarkerBehaviour>().SetMarkerIdAndSize(topRightMarkerID,markerSizeInMeters);
-        gameObject.AddComponent<MarkerBehaviour>().SetMarkerIdAndSize(bottomLeftMarkerID,markerSizeInMeters);
-        gameObject.AddComponent<MarkerBehaviour>().SetMarkerIdAndSize(bottomRightMarkerID,markerSizeInMeters);
-        
+        if (id == topLeftMarker.GetMarkerID())
+        {
+            return true;
+        }
+        else if (id == topRightMarker.GetMarkerID())
+        {
+            return true;
+        }
+        else if (id == bottomLeftMarker.GetMarkerID())
+        {
+            return true;
+        }
+        else if (id == bottomRightMarker.GetMarkerID())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

@@ -4,24 +4,22 @@ using UnityEngine;
 
 public class ARCameraPlaneTracker : ARCameraTracker
 {
-    private Camera arCam;
-
     [SerializeField] private ARMarkerPlane arPlaneTarget;
-    
-    private bool shouldReposition = false;
+
+    private MarkerBehaviour closestCorner;
 
     protected override void RepositionCamera()
     {
-        if (arPlaneTarget == null) return;
+        if (arPlaneTarget == null || closestCorner == null) return;
         
-        /*
-        Matrix4x4 m = trackingTarget.GetMatrix();
+        
+        Matrix4x4 m = closestCorner.GetMatrix();
         Matrix4x4 inverseMat = m.inverse;
 
-        transform.position = trackingTarget.transform.position;
+        transform.position = closestCorner.transform.position;
         transform.position += ARucoUnityHelper.GetPosition(inverseMat);
         transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
-        */
+        
         
        // trackingTarget.transform.localScale = ARucoUnityHelper.GetScale(m);
 
@@ -29,7 +27,7 @@ public class ARCameraPlaneTracker : ARCameraTracker
     
     protected override void ConcentrateOnTheClosestMarker(int[] markerIds)
     {
-        /*
+        
         MarkerBehaviour closestMarker = null;
         float closestDistance = Mathf.Infinity;
         
@@ -47,7 +45,19 @@ public class ARCameraPlaneTracker : ARCameraTracker
             // Debug.Log("ID: " + i + " " + "Distance: " + GetMarkerDistanceFromCamera(m));
         }
 
-       // trackingTarget = closestMarker;
-       */
+        if (closestMarker == null) return;
+        
+        if (closestCorner == null)
+        {
+            closestCorner = closestMarker;
+            return;
+        }
+
+        float d1 = GetMarkerDistanceFromCamera(closestMarker);
+        float d2 = GetMarkerDistanceFromCamera(closestCorner);
+
+        float difference = Mathf.Abs(d1 - d2);
+
+        if (difference > 2) closestCorner = closestMarker;
     }
 }

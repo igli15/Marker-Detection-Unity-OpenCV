@@ -5,12 +5,7 @@ using UnityEngine;
 
 public class ARCameraMarkerTracker : ARCameraTracker
 {
-    private Camera arCam;
-    
     public MarkerBehaviour trackingTarget;
-    
-    private bool shouldReposition = false;
-
 
     protected override void RepositionCamera()
     {
