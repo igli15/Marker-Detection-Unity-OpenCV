@@ -14,6 +14,7 @@ public class MarkerDetector : WebCamera
     
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
+    [SerializeField] private bool doCornerRefinement = true;
     
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
@@ -32,7 +33,9 @@ public class MarkerDetector : WebCamera
     void Init()
     {
         detectorParameters = DetectorParameters.Create();
-        
+       
+        detectorParameters.DoCornerRefinement = doCornerRefinement;
+
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
     }
 
