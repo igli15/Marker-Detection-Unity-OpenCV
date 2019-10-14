@@ -40,10 +40,10 @@ public class MarkerBehaviour : MonoBehaviour
         MarkerManager.RegisterMarker(this);
     }
 
-    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners, Point2f[] rejectedImgPoints)
+    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners)
     {
         currentMarkerData.corners = corners;
-        currentMarkerData.rejectedImgPoints = rejectedImgPoints;
+        //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
         UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight));
     }
 

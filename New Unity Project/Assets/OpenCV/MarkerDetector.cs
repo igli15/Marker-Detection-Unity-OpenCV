@@ -24,6 +24,10 @@ public class MarkerDetector : WebCamera
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
     
+    private Point2f[][] corners;
+    private int[] ids;
+    private Point2f[][] rejectedImgPoints;
+    
     protected override void Start()
     {
         base.Start();  
@@ -59,11 +63,8 @@ public class MarkerDetector : WebCamera
     {
         Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
-        Point2f[][] corners;
-        int[] ids;
-        Point2f[][] rejectedImgPoints;
-
         CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters, out rejectedImgPoints);
+
         //CvAruco.DrawDetectedMarkers(img, corners, ids);
 
         CheckIfLostMarkers(ids);
@@ -78,6 +79,8 @@ public class MarkerDetector : WebCamera
         
         for (int i = 0; i < ids.Length; i++)
         {
+            Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+
             if (!MarkerManager.IsMarkerRegistered(ids[i]))
             {
                 continue;
@@ -85,17 +88,14 @@ public class MarkerDetector : WebCamera
 
             MarkerBehaviour m = MarkerManager.GetMarker(ids[i]);
 
-            if (m == null)
-            {
-                continue;
-            }
-
             if (!allDetectedMarkers.ContainsKey(ids[i]))
             {
                 m.OnMarkerDetected.Invoke();
                 allDetectedMarkers.Add(m.GetMarkerID(), m);
             }
-            m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
+
+            // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
+            m.UpdateMarker(img.Cols, img.Rows, corners[i]);
         }
     }
 

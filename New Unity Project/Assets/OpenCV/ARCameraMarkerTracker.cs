@@ -32,6 +32,8 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
     protected override void ConcentrateOnTheClosestMarker(int[] markerIds)
     {
+        if(trackingTarget != null)Debug.Log(trackingTarget.GetMarkerID());
+        
         MarkerBehaviour closestMarker = null;
         float closestDistance = Mathf.Infinity;
         
@@ -56,12 +58,12 @@ public class ARCameraMarkerTracker : ARCameraTracker
             trackingTarget = closestMarker;
             return;
         }
-
+        
         float d1 = GetMarkerDistanceFromCamera(closestMarker);
         float d2 = GetMarkerDistanceFromCamera(trackingTarget);
 
         float difference = Mathf.Abs(d1 - d2);
-
-        if (difference > 2) trackingTarget = closestMarker;
+        Debug.Log(difference);
+        if (difference > 0.1) trackingTarget = closestMarker;
     }
 }

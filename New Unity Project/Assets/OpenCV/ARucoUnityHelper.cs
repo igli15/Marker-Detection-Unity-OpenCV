@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 public class ARucoUnityHelper
 {
 
-    private static Color32[] pixels = new Color32[0];
+    private static Color32[] pixels;
      private static Color32[] pixels2;
 
     //caching some arrays since this is an amazing library
@@ -96,10 +96,11 @@ public class ARucoUnityHelper
         if (null == parameters)
             parameters = TextureConversionParams.Default;
 
-        Array.Resize(ref pixels,texture.GetRawTextureData<Color32>().Length);
+       // Array.Resize(ref pixels,texture.GetRawTextureData<Color32>().Length);
+       //texture.GetRawTextureData<Color32>().CopyTo(pixels);
 
-        texture.GetRawTextureData<Color32>().CopyTo(pixels);
-        return PixelsToMat(pixels, texture.width, texture.height, parameters.FlipVertically, parameters.FlipHorizontally, parameters.RotationAngle);
+       pixels = texture.GetPixels32();
+       return PixelsToMat(pixels, texture.width, texture.height, parameters.FlipVertically, parameters.FlipHorizontally, parameters.RotationAngle);
     }
 
     /// <summary>

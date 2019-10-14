@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using OpenCvSharp;
+using Rect = OpenCvSharp.Rect;
 
 // Many ideas are taken from http://answers.unity3d.com/questions/773464/webcamtexture-correct-resolution-and-ratio.html#answer-1155328
 
@@ -25,19 +26,14 @@ public abstract class WebCamera : MonoBehaviour
     public bool useFrontCamera = false;
     public int textureFps = 60;
 
-    /// <summary>
-    /// A kind of workaround for macOS issue: MacBook doesn't state it's webcam as frontal
-    /// </summary>
     protected bool forceFrontalCamera = false;
-
-    /// <summary>
-    /// WebCam texture parameters to compensate rotations, flips etc.
-    /// </summary>
+    
     protected ARucoUnityHelper.TextureConversionParams TextureParameters { get; private set; }
 
-    /// <summary>
-    /// Camera device name, full list can be taken from WebCamTextures.devices enumerator
-    /// </summary>
+    protected RawImage rawImage;
+    private AspectRatioFitter aspectRatioFitter;
+    private RectTransform imgRectTransform;
+    
     public string DeviceName
     {
         get
@@ -125,12 +121,13 @@ public abstract class WebCamera : MonoBehaviour
         //UnityEngine.Debug.Log (string.Format("front = {0}, vertMirrored = {1}, angle = {2}", webCamDevice.isFrontFacing, webCamTexture.videoVerticallyMirrored, webCamTexture.videoRotationAngle));
     }
 
-    /// <summary>
-    /// Default initializer for MonoBehavior sub-classes
-    /// </summary>
+   
     protected virtual void Start()
     {
-
+        rawImage = Surface.GetComponent<RawImage>();
+        aspectRatioFitter = Surface.GetComponent<AspectRatioFitter>();
+        imgRectTransform = Surface.GetComponent<RectTransform>();
+        
         if (WebCamTexture.devices.Length > 0)
         {
             DeviceName = WebCamTexture.devices[WebCamTexture.devices.Length - 1].name;
@@ -171,28 +168,23 @@ public abstract class WebCamera : MonoBehaviour
             }
         }
     }
-
-    /// <summary>
-    /// Processes current texture
-    /// This function is intended to be overridden by sub-classes
-    /// </summary>
-    /// <param name="input">Input WebCamTexture object</param>
-    /// <param name="output">Output Texture2D object</param>
-    /// <returns>True if anything has been processed, false if output didn't change</returns>
+    
     protected abstract bool ProcessTexture(WebCamTexture input, ref Texture2D output);
-
-    /// <summary>
-    /// Renders frame onto the surface
-    /// </summary>
+    
     private void RenderFrame()
     {
         if (renderedTexture != null)
         {
             // apply
-            Surface.GetComponent<RawImage>().texture = renderedTexture;
+            rawImage.texture = renderedTexture;
 
+            float videoRatio = (float) Screen.width/(float)Screen.height;
+   
+            // you'll be using an AspectRatioFitter on the Image, so simply set it
+            aspectRatioFitter.aspectRatio = videoRatio;
+            
             // Adjust image ration according to the texture sizes 
-            Surface.GetComponent<RectTransform>().sizeDelta = new Vector2(renderedTexture.width, renderedTexture.height);
+            imgRectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
         }
     }
 }
