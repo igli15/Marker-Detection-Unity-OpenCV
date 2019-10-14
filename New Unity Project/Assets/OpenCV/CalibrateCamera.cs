@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class CalibrateCamera : MonoBehaviour
+public class CalibrateCamera : WebCamera
 {
     public Texture2D texture;
     public RawImage rawImage;
@@ -29,8 +29,9 @@ public class CalibrateCamera : MonoBehaviour
     private List<List<Point2f>>  imagePoints = new List<List<Point2f>>();
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
     
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         // Create default parameres for detection
         detectorParameters = DetectorParameters.Create();
 
@@ -39,23 +40,21 @@ public class CalibrateCamera : MonoBehaviour
 
         boardSize = new Size(boardWidth,boardHeight);
         
-        mat = ARucoUnityHelper.TextureToMat(texture);
-            
-        grayMat = new Mat();
-
-        Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
-
-        Calibrate();
-            
-        Texture outputTexture = ARucoUnityHelper.MatToTexture(mat);
-        rawImage.texture = outputTexture;
     }
     
     private void Calibrate()
     {
+        corners.Clear();
+        obj.Clear();
+        imagePoints.Clear();
+        objPoints.Clear();
+        
         bool b = false;
 
         b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners));
+
+        if(!b) return;
+
         Cv2.CornerSubPix(grayMat, corners, new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
         Debug.Log(b);
 
@@ -93,4 +92,23 @@ public class CalibrateCamera : MonoBehaviour
                m[1,0] + " " + m[1,1] + " " + m[1,2] + "\n" +
                 m[2,0] + " " + m[2,1] + " " + m[2,2];
     }
+
+ protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
+ {
+        TextureParameters.FlipHorizontally = false;
+        mat = ARucoUnityHelper.TextureToMat(input,TextureParameters);
+            
+        grayMat = new Mat();
+
+        Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            Calibrate();
+        }
+            
+        output = ARucoUnityHelper.MatToTexture(mat);
+        return true;
+        //rawImage.texture = outputTexture;
+ }
 }
