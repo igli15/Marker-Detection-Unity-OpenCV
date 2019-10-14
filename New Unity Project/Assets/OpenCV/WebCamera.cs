@@ -187,4 +187,8 @@ public abstract class WebCamera : MonoBehaviour
             imgRectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
         }
     }
+
+    void OnDisable() {
+        webCamTexture.Stop();
+    }
 }

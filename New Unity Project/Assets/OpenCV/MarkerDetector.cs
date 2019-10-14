@@ -16,6 +16,7 @@ public class MarkerDetector : WebCamera
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
     
+    public CalibrationData calibrationData;
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
@@ -95,7 +96,7 @@ public class MarkerDetector : WebCamera
             }
 
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-            m.UpdateMarker(img.Cols, img.Rows, corners[i]);
+            m.UpdateMarker(img.Cols, img.Rows, corners[i],calibrationData.GetCameraMatrix());
         }
     }
 

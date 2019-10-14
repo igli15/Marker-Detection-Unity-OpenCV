@@ -40,11 +40,11 @@ public class MarkerBehaviour : MonoBehaviour
         MarkerManager.RegisterMarker(this);
     }
 
-    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners)
+    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners,double[,] k)
     {
         currentMarkerData.corners = corners;
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight));
+        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight,k));
     }
 
 
@@ -107,7 +107,7 @@ public class MarkerBehaviour : MonoBehaviour
         currentMarkerPose.scale = ARucoUnityHelper.GetScale(currentTransformationMatrix);
     }
 
-    private Matrix4x4 CreateTransformationMatrix(float width, float height)
+    private Matrix4x4 CreateTransformationMatrix(float width, float height,double[,] k)
     {
         if (currentMarkerData.corners.Length == 0)
         {
@@ -129,14 +129,15 @@ public class MarkerBehaviour : MonoBehaviour
 
         double cx = width / 2d;
         double cy = height / 2d;
-
+/* 
         double[,] rawCameraMatrix = new double[3, 3]
         {
             {fx,0d,cx },
             {0d,fy,cy },
             {0d,0d,1d }
         };
-
+*/
+         double[,] rawCameraMatrix = k;
         double[] distCoff = new double[4] { 0d, 0d, 0d, 0d };
         double[] rvec = new double[3] { 0d, 0d, 0d };
         double[] tvec = new double[3] { 0d, 0d, 0d };

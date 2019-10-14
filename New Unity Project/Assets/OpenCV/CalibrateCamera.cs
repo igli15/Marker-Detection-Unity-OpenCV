@@ -5,6 +5,7 @@ using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -17,6 +18,9 @@ public class CalibrateCamera : WebCamera
     public int boardHeight;
     public int squareSizeMilimeters;
 
+    public CalibrationData calibrationData;
+    public BoolVariable startCalibration;
+     public BoolVariable registerCalibFrame;
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat mat;
@@ -42,12 +46,12 @@ public class CalibrateCamera : WebCamera
         
     }
     
-    private void Calibrate()
+    private void RegisterCurrentCalib()
     {
-        corners.Clear();
+        //corners.Clear();
         obj.Clear();
-        imagePoints.Clear();
-        objPoints.Clear();
+        //imagePoints.Clear();
+        //objPoints.Clear();
         
         bool b = false;
 
@@ -73,15 +77,20 @@ public class CalibrateCamera : WebCamera
             }
         }
 
+    }
+
+    private void Calibrate()
+    {
         double[,] k = new double[3, 3];
         double[] d = new double[4];
 
         Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
         Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
         
-        Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
-            CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,0));
+        Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
+            CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,1)));
         
+        calibrationData.RegisterMatrix(k);
         Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3]);
        Debug.Log(DebugMatrix(k));
     }
@@ -102,12 +111,22 @@ public class CalibrateCamera : WebCamera
 
         Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
 
-        if(Input.GetKeyDown(KeyCode.Space))
+        if(registerCalibFrame.value)
+        {
+            RegisterCurrentCalib();
+            registerCalibFrame.value = false;
+        }
+
+        if(startCalibration.value)
         {
             Calibrate();
+            startCalibration.value = false;
         }
             
         output = ARucoUnityHelper.MatToTexture(mat);
+
+        mat.Release();
+        grayMat.Release();
         return true;
         //rawImage.texture = outputTexture;
  }

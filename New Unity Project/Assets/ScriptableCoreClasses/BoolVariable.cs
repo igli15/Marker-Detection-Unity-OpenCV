@@ -22,4 +22,8 @@ public class BoolVariable : ScriptableObject,ISerializationCallbackReceiver
     {
         if(!_isPersistent) value = initValue;
     }
+    public void SetValue(bool v)
+    {
+        value = v;
+    }
 }

@@ -14,7 +14,7 @@ public class ARCamera : MonoBehaviour
     public Camera webCam;
     public GameObject outputImage;
     public ArDebugValues arDebugValues;
-    
+    public CalibrationData calibrationData;
     private RectTransform imageRectTransform;
     
     private Vector2 currentScreenSize = Vector2.zero;
@@ -69,13 +69,18 @@ public class ARCamera : MonoBehaviour
         double cx = width / 2;
         double cy = height / 2;
 
+        /*
         double[,] cameraMatrix = new double[3, 3] {
             {fx, 0d, cx},
             {0d, fy, cy},
             {0d, 0d, 1d}
         };
+        */
+        double[,] cameraMatrix = new Double[3,3];
+        cameraMatrix = calibrationData.GetCameraMatrix(ref cameraMatrix);
         
-        
+        Debug.Log(cameraMatrix[0,0]);
+
         Size imgSize = new Size(width * imgScale,height * imgScale);
         
         double apertureWidth = 0;
