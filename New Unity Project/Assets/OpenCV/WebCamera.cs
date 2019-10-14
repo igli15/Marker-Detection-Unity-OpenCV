@@ -155,7 +155,9 @@ public abstract class WebCamera : MonoBehaviour
     /// Updates web camera texture
     /// </summary>
     private void Update()
-    {   
+    {
+        if (webCamTexture.height < 100) return;
+        
         if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
         {
             // this must be called continuously

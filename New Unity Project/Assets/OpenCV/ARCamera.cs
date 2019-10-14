@@ -31,6 +31,8 @@ public class ARCamera : MonoBehaviour
 
     private void Update()
     {
+        if (imageRectTransform.sizeDelta.x < 100) return;
+        
         currentRectSize = imageRectTransform.sizeDelta;
         if (Screen.width != currentScreenSize.x || Screen.height != currentScreenSize.y || currentRectSize.x != oldRectSize.x || currentRectSize.y != oldRectSize.y) 
         {

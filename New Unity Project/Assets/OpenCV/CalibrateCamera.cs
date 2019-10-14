@@ -11,9 +11,6 @@ using UnityEngine.UI;
 
 public class CalibrateCamera : WebCamera
 {
-    public Texture2D texture;
-    public RawImage rawImage;
-
     public int boardWidth;
     public int boardHeight;
     public int squareSizeMilimeters;
@@ -24,7 +21,7 @@ public class CalibrateCamera : WebCamera
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat mat;
-    private Mat grayMat;
+    private Mat grayMat = new Mat();
 
     private Size boardSize;
     private List<Point2f> corners = new List<Point2f>();
@@ -105,9 +102,7 @@ public class CalibrateCamera : WebCamera
  protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
  {
         TextureParameters.FlipHorizontally = false;
-        mat = ARucoUnityHelper.TextureToMat(input,TextureParameters);
-            
-        grayMat = new Mat();
+        mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
 
         Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
 
@@ -123,11 +118,19 @@ public class CalibrateCamera : WebCamera
             startCalibration.value = false;
         }
             
-        output = ARucoUnityHelper.MatToTexture(mat);
+        output = ARucoUnityHelper.MatToTexture(mat,output);
 
         mat.Release();
-        grayMat.Release();
+       // grayMat.Release();
+        
         return true;
         //rawImage.texture = outputTexture;
+ }
+
+ private void OnDisable()
+ {
+     mat.Release();
+     grayMat.Release();
+     
  }
 }
