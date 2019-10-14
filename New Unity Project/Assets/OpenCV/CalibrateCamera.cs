@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 public class CalibrateCamera : MonoBehaviour
 {
-    public Texture2D[] textures;
+    public Texture2D texture;
     public RawImage rawImage;
 
     public int boardWidth;
@@ -38,24 +38,17 @@ public class CalibrateCamera : MonoBehaviour
         dictionary = CvAruco.GetPredefinedDictionary(PredefinedDictionaryName.Dict4X4_1000);
 
         boardSize = new Size(boardWidth,boardHeight);
+        
+        mat = ARucoUnityHelper.TextureToMat(texture);
+            
+        grayMat = new Mat();
 
-        foreach (var t in textures)
-        {
-            // Create Opencv image from unity texture
-            mat = ARucoUnityHelper.TextureToMat(t);
+        Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
 
-            // Convert image to grasyscale
-            grayMat = new Mat();
-
-            Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
-
-            Calibrate();
-
-            // Create Unity output texture awith detected markers
-            Texture outputTexture = ARucoUnityHelper.MatToTexture(mat);
-
-            rawImage.texture = outputTexture;
-        }
+        Calibrate();
+            
+        Texture outputTexture = ARucoUnityHelper.MatToTexture(mat);
+        rawImage.texture = outputTexture;
     }
     
     private void Calibrate()
@@ -91,5 +84,13 @@ public class CalibrateCamera : MonoBehaviour
             CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,0));
         
         Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3]);
+       Debug.Log(DebugMatrix(k));
+    }
+
+    private string DebugMatrix( double[,] m)
+    {
+        return m[0,0] + " " + m[0,1] + " " + m[0,2] + "\n" +
+               m[1,0] + " " + m[1,1] + " " + m[1,2] + "\n" +
+                m[2,0] + " " + m[2,1] + " " + m[2,2];
     }
 }
