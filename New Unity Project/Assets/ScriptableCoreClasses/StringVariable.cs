@@ -22,4 +22,9 @@ public class StringVariable : ScriptableObject,ISerializationCallbackReceiver
     {
         if(!_isPersistent) value = initValue;
     }
+
+    public void SetValue(string s)
+    {
+        value = s;
+    }
 }

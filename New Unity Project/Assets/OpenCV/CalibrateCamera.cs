@@ -51,9 +51,10 @@ public class CalibrateCamera : WebCamera
 
     public CalibrationData calibrationData;
     
-    [Title("Bool Variables",null,TitleAlignments.Centered)]
+    [Title("Variables",null,TitleAlignments.Centered)]
     public BoolVariable startCalibration;
     public BoolVariable registerCalibFrame;
+    public StringVariable patternSizeString;
     
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
@@ -142,34 +143,45 @@ public class CalibrateCamera : WebCamera
 
  protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
  {
-        TextureParameters.FlipHorizontally = false;
-        mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
+     if (!int.TryParse(patternSizeString.value, out squareSizeMilimeters))
+     {
+         return false;
+     }
+     squareSizeMilimeters = int.Parse(patternSizeString.value);
+        
+     TextureParameters.FlipHorizontally = false;
+     mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
 
-        Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
+     Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
 
-        if(registerCalibFrame.value)
-        {
-            RegisterCurrentCalib();
-            registerCalibFrame.value = false;
-        }
+     if(registerCalibFrame.value)
+     {
+         RegisterCurrentCalib();
+         registerCalibFrame.value = false;
+     }
 
-        if(startCalibration.value)
-        {
-            //Calibrate();
-            //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
-            Thread t = new Thread(() => CalibrateAsync(boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData));
-            t.Start();
-            startCalibration.value = false;
-        }
+     if(startCalibration.value)
+     {
+         //Calibrate();
+
+         if (objPoints.Count > 0)
+         {
+             //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
+             Thread t = new Thread(() =>
+                 CalibrateAsync(boardWidth, boardHeight, ref objPoints, ref imagePoints, mat, calibrationData));
+             t.Start();
+         }
+         startCalibration.value = false;
+     }
      
             
-        output = ARucoUnityHelper.MatToTexture(mat,output);
+     output = ARucoUnityHelper.MatToTexture(mat,output);
 
-        mat.Release();
-       // grayMat.Release();
+     mat.Release();
+     // grayMat.Release();
         
-        return true;
-        //rawImage.texture = outputTexture;
+     return true;
+     //rawImage.texture = outputTexture;
  }
 
  private void OnDisable()
