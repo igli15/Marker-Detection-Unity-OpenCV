@@ -38,6 +38,7 @@ public class CalibrationThread
             imagePoints.Clear();
 
             if(CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
+            Debug.Log("restarting...");
         }
 
         
@@ -105,6 +106,16 @@ public class CalibrateCamera : WebCamera
         }
     }
 
+    public void ResetCalibrationImmediate()
+    {
+        
+        objPoints.Clear();
+        imagePoints.Clear();
+
+        if(CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
+        
+        Debug.Log("Reseting....");
+    }
     public void RegisterCurrentCalib()
     {
         corners.Clear();
