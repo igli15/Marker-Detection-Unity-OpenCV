@@ -34,6 +34,12 @@ public class UpdateCalibrtionInfo : MonoBehaviour
         startedCalibration = true;
     }
 
+    private void OnCalibrationReset()
+    {
+        calibrateButton.interactable = true;
+        finishedCalibration = false;
+    }
+
     private void OnDisable()
     {
         CalibrateCamera.OnCalibrationFinished -= OnCalibrationFinished;

@@ -186,7 +186,7 @@ public abstract class WebCamera : MonoBehaviour
            // aspectRatioFitter.aspectRatio = videoRatio;
             
             // Adjust image ration according to the texture sizes 
-            imgRectTransform.sizeDelta = new Vector2(cameraMaxTextureResolution.x, cameraMaxTextureResolution.y);
+            imgRectTransform.sizeDelta = new Vector2(renderedTexture.width, renderedTexture.height);
         }
     }
 

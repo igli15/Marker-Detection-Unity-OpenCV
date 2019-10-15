@@ -62,7 +62,7 @@
 			}
 
 			outputSurface.transform.localScale = new Vector3 (aspect, aspect, 1.0f);
-			Debug.Log(imageSize);
+
 			AdjustFOV (imageSize);
 		}
 
@@ -93,25 +93,8 @@
 
 
 			OpenCvSharp.Cv2.CalibrationMatrixValues (cameraMatrix, size, apertureWidth, apertureHeight, out fovx, out fovy, out focalLength, out principalPoint, out aspectratio);
-			//Debug.Log(aspectratio);
-			
-			//arCamera.fieldOfView = (float)fovy;
-			double fovXScale = (2.0 * Mathf.Atan ((float)(width / (2.0 * fx)))) / (Mathf.Atan2 ((float)cx, (float)fx) + Mathf.Atan2 ((float)(width - cx), (float)fx));
-			double fovYScale = (2.0 * Mathf.Atan ((float)(height / (2.0 * fy)))) / (Mathf.Atan2 ((float)cy, (float)fy) + Mathf.Atan2 ((float)(height - cy), (float)fy));
 
-			float widthScale = (float)Screen.width / width;
-			float heightScale = (float) Screen.height / height;
-			// Adjust Unity Camera FOV https://github.com/opencv/opencv/commit/8ed1945ccd52501f5ab22bdec6aa1f91f1e2cfd4
-			Debug.Log(fovYScale);
-			arCamera.fieldOfView = (float)(fovy  * fovYScale);
-			/*
-			if (widthScale < heightScale) {
-				arCamera.fieldOfView = (float)(fovx  * fovXScale);
-			} else {
-				arCamera.fieldOfView = (float)(fovy  * fovYScale);
-			}
-			*/
-			
+			arCamera.fieldOfView = (float)fovy;
 
 		}
 	}

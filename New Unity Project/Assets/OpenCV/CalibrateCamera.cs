@@ -25,10 +25,21 @@ public class CalibrationThread
 
         Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
         Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
-        
-        
-        Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
-                      CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,1)));
+
+
+        try
+        {
+            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
+                          CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,1)));
+        }
+        catch (Exception e)
+        {
+            objPoints.Clear();
+            imagePoints.Clear();
+
+            if(CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
+        }
+
         
         calibrationData.RegisterMatrix(k);
         Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3]);
@@ -70,6 +81,7 @@ public class CalibrateCamera : WebCamera
 
     public static Action<CalibrationData> OnCalibrationFinished;
     public static Action OnCalibrationStarted;
+    public static Action OnCalibrationReset;
     
     protected override void Start()
     {
@@ -86,7 +98,7 @@ public class CalibrateCamera : WebCamera
 
     private void RegisterCurrentCalib()
     {
-        //corners.Clear();
+        corners.Clear();
         obj.Clear();
         //imagePoints.Clear();
         //objPoints.Clear();
@@ -183,7 +195,9 @@ public class CalibrateCamera : WebCamera
      return true;
      //rawImage.texture = outputTexture;
  }
-
+ 
+    
+    
  protected override void OnDisable()
  {
      base.OnDisable();

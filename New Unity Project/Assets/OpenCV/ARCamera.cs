@@ -33,11 +33,11 @@ public class ARCamera : MonoBehaviour
     {
         if (imageRectTransform.sizeDelta.x < 100) return;
         
-        currentRectSize = imageRectTransform.sizeDelta;
+        oldRectSize = imageRectTransform.sizeDelta;
         if (Screen.width != currentScreenSize.x || Screen.height != currentScreenSize.y || currentRectSize.x != oldRectSize.x || currentRectSize.y != oldRectSize.y) 
         {
             currentScreenSize = new Vector2 (Screen.width, Screen.height);
-            oldRectSize = currentRectSize;
+            currentRectSize = oldRectSize;
             Debug.Log("Calibrating");
 			//imageRectTransform.sizeDelta = new Vector2(Screen.width,Screen.height);	
             Calibrate();
@@ -50,6 +50,8 @@ public class ARCamera : MonoBehaviour
         float width = currentRectSize.x;
         float height = currentRectSize.y;
 
+        if (width < 0 || height < 0) return;
+        
         float imgScale = 1.0f;
 
         float widthScale = (float)Screen.width / width;
@@ -72,11 +74,12 @@ public class ARCamera : MonoBehaviour
         {
             aspect = heightScale;
             imgSize = new Size(width ,height );
-        } else
+        } 
+        else
         {
-            float k = (float) Screen.width / (float)Screen.height;
+            float k = (float) Screen.height / (float)Screen.width;
             imgSize = new Size(width ,width * k );
-            webCam.orthographicSize = height / 2;
+            //webCam.orthographicSize = height / 2;
             aspect = widthScale;
         }
         outputImage.transform.localScale = new UnityEngine.Vector3(aspect,aspect,1);
@@ -130,7 +133,9 @@ public class ARCamera : MonoBehaviour
         } else {
             arCam.fieldOfView = (float)(fovy * fovYScale);
         }
-
+            
+            
+           // arCam.fieldOfView = (float)fovy;
         //arCam.aspect = (float)aspectratio;
 
     }
