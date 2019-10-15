@@ -180,17 +180,18 @@ public abstract class WebCamera : MonoBehaviour
             // apply
             rawImage.texture = renderedTexture;
 
-            float videoRatio = (float) Screen.width/(float)Screen.height;
+            //float videoRatio = (float) cameraMaxTextureResolution.x/cameraMaxTextureResolution.y;
    
             // you'll be using an AspectRatioFitter on the Image, so simply set it
-            aspectRatioFitter.aspectRatio = videoRatio;
+           // aspectRatioFitter.aspectRatio = videoRatio;
             
             // Adjust image ration according to the texture sizes 
-            imgRectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
+            imgRectTransform.sizeDelta = new Vector2(cameraMaxTextureResolution.x, cameraMaxTextureResolution.y);
         }
     }
 
-    protected virtual void OnDisable() {
+    protected virtual void OnDisable()
+    {
         webCamTexture.Stop();
     }
 }

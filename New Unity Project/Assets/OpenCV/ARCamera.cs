@@ -55,6 +55,7 @@ public class ARCamera : MonoBehaviour
         float widthScale = (float)Screen.width / width;
         float heightScale = (float) Screen.height / height;
         
+        /*
         if (widthScale < heightScale) 
         {
             webCam.orthographicSize = (width * (float)Screen.height / (float)Screen.width) / 2;
@@ -63,7 +64,23 @@ public class ARCamera : MonoBehaviour
         {
             webCam.orthographicSize = height / 2;
         }
+        */
 
+        float aspect = 1;
+        Size imgSize;
+        if (widthScale < heightScale)
+        {
+            aspect = heightScale;
+            imgSize = new Size(width ,height );
+        } else
+        {
+            float k = (float) Screen.width / (float)Screen.height;
+            imgSize = new Size(width ,width * k );
+            webCam.orthographicSize = height / 2;
+            aspect = widthScale;
+        }
+        outputImage.transform.localScale = new UnityEngine.Vector3(aspect,aspect,1);
+        
         int maxSize = (int)Mathf.Max(width, height);
         double fx = maxSize;
         double fy = maxSize;
@@ -81,9 +98,8 @@ public class ARCamera : MonoBehaviour
         double[,] cameraMatrix = new Double[3,3];
         cameraMatrix = calibrationData.GetCameraMatrix(ref cameraMatrix);
         
-        Debug.Log(cameraMatrix[0,0]);
-
-        Size imgSize = new Size(width * imgScale,height * imgScale);
+        //Debug.Log(cameraMatrix[0,0]);
+        
         
         double apertureWidth = 0;
         double apertureHeight = 0;
