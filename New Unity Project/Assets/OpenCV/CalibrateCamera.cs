@@ -63,8 +63,6 @@ public class CalibrateCamera : WebCamera
     public CalibrationData calibrationData;
     
     [Title("Variables",null,TitleAlignments.Centered)]
-    public BoolVariable startCalibration;
-    public BoolVariable registerCalibFrame;
     public StringVariable patternSizeString;
     
     private DetectorParameters detectorParameters;
@@ -96,7 +94,18 @@ public class CalibrateCamera : WebCamera
         
     }
 
-    private void RegisterCurrentCalib()
+    public void StartCalibrateAsync()
+    {
+        if (objPoints.Count > 0)
+        {
+            //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
+            Thread t = new Thread(() =>
+                CalibrateAsync(boardWidth, boardHeight, ref objPoints, ref imagePoints, mat, calibrationData));
+            t.Start();
+        }
+    }
+
+    public void RegisterCurrentCalib()
     {
         corners.Clear();
         obj.Clear();
@@ -129,31 +138,7 @@ public class CalibrateCamera : WebCamera
 
     }
 
-    private void Calibrate()
-    {
-        double[,] k = new double[3, 3];
-        double[] d = new double[4];
-
-        Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
-        Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
-        
-        
-        Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
-            CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,1)));
-        
-        calibrationData.RegisterMatrix(k);
-        Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3]);
-       Debug.Log(DebugMatrix(k));
-    }
-
-    private string DebugMatrix( double[,] m)
-    {
-        return m[0,0] + " " + m[0,1] + " " + m[0,2] + "\n" +
-               m[1,0] + " " + m[1,1] + " " + m[1,2] + "\n" +
-                m[2,0] + " " + m[2,1] + " " + m[2,2];
-    }
-
- protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
+    protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
  {
      if (!int.TryParse(patternSizeString.value, out squareSizeMilimeters))
      {
@@ -165,35 +150,11 @@ public class CalibrateCamera : WebCamera
      mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
 
      Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
-
-     if(registerCalibFrame.value)
-     {
-         RegisterCurrentCalib();
-         registerCalibFrame.value = false;
-     }
-
-     if(startCalibration.value)
-     {
-         //Calibrate();
-
-         if (objPoints.Count > 0)
-         {
-             //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
-             Thread t = new Thread(() =>
-                 CalibrateAsync(boardWidth, boardHeight, ref objPoints, ref imagePoints, mat, calibrationData));
-             t.Start();
-         }
-         startCalibration.value = false;
-     }
      
-            
      output = ARucoUnityHelper.MatToTexture(mat,output);
-
-     //mat.Release();
-     // grayMat.Release();
+     
         
      return true;
-     //rawImage.texture = outputTexture;
  }
  
     
