@@ -177,15 +177,16 @@ public class CalibrateCamera : WebCamera
             
      output = ARucoUnityHelper.MatToTexture(mat,output);
 
-     mat.Release();
+     //mat.Release();
      // grayMat.Release();
         
      return true;
      //rawImage.texture = outputTexture;
  }
 
- private void OnDisable()
+ protected override void OnDisable()
  {
+     base.OnDisable();
      mat.Release();
      grayMat.Release();
      

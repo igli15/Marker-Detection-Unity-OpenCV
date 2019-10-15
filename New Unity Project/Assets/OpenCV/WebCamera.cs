@@ -190,7 +190,7 @@ public abstract class WebCamera : MonoBehaviour
         }
     }
 
-    void OnDisable() {
+    protected virtual void OnDisable() {
         webCamTexture.Stop();
     }
 }
