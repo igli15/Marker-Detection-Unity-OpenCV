@@ -97,7 +97,7 @@ public class MarkerDetector : WebCamera
             }
 
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-            m.UpdateMarker(img.Cols, img.Rows, corners[i],calibrationData.GetCameraMatrix());
+            m.UpdateMarker(img.Cols, img.Rows, corners[i],calibrationData.GetCameraMatrix(),calibrationData.GetDistortionCoefficients());
         }
     }
 
