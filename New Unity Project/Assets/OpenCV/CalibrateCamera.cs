@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
 using Sirenix.OdinInspector;
@@ -10,48 +11,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-using static CalibrationThread;
+//using static CalibrationThread;
 
-public class CalibrationThread
-{
-    public static void CalibrateAsync(int boardWidth, int boardHeight,ref List<List<Point3f>> objPoints,ref List<List<Point2f>> imagePoints, Mat mat,CalibrationData calibrationData)
-    {
-        Debug.Log("Calibrating Async.....");
-
-        if (CalibrateCamera.OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
-        
-        double[,] k = new double[3, 3];
-        double[] d = new double[4];
-
-        Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
-        Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
-
-
-        try
-        {
-            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
-                          CalibrationFlags.FixK4 | CalibrationFlags.FixK5,TermCriteria.Both(30,1)));
-        }
-        catch (Exception e)
-        {
-            objPoints.Clear();
-            imagePoints.Clear();
-
-            if(CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
-            Debug.Log("restarting...");
-        }
-
-        
-        calibrationData.RegisterMatrix(k);
-        Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3]);
-        Debug.Log("Finished!!");
-
-        if (CalibrateCamera.OnCalibrationFinished != null)
-        {
-            CalibrateCamera.OnCalibrationFinished(calibrationData);
-        }
-    }
-}
 
 
 public class CalibrateCamera : WebCamera
@@ -59,7 +20,7 @@ public class CalibrateCamera : WebCamera
     [Title("Calibration Settings",null,TitleAlignments.Centered)]
     public int boardWidth;
     public int boardHeight;
-    public int squareSizeMilimeters;
+    public float squareSizeMilimeters;
 
     public CalibrationData calibrationData;
     
@@ -78,6 +39,9 @@ public class CalibrateCamera : WebCamera
     private List<List<Point2f>>  imagePoints = new List<List<Point2f>>();
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
 
+    private Thread calibrationThread = null;
+    public static Mutex calibrationMutex = new Mutex();
+    
     public static Action<CalibrationData> OnCalibrationFinished;
     public static Action OnCalibrationStarted;
     public static Action OnCalibrationReset;
@@ -93,17 +57,71 @@ public class CalibrateCamera : WebCamera
 
         boardSize = new Size(boardWidth,boardHeight);
         
+       OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
+
     }
 
     public void StartCalibrateAsync()
     {
-        if (objPoints.Count > 0)
+        if (objPoints.Count > 0 && calibrationThread == null)
         {
             //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
-            Thread t = new Thread(() =>
-                CalibrateAsync(boardWidth, boardHeight, ref objPoints, ref imagePoints, mat, calibrationData));
-            t.Start();
+            calibrationThread = new Thread(Calibrate);
+            calibrationThread.Start();
         }
+    }
+    
+    private void Calibrate()
+    {
+        Debug.Log("Calibrating Async.....");
+        calibrationMutex.WaitOne();
+        
+        if (OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
+
+        int maxSize = (int)Mathf.Max(mat.Width, mat.Height);
+        double fx = maxSize;
+        double fy = maxSize;
+
+        double cx = (double)mat.Width / 2;
+        double cy = (double)mat.Height / 2;
+
+        double[,] k = new double[3, 3]
+        {
+            {fx, 0d, cx},
+            {0d, fy, cy},
+            {0d, 0d, 1d}
+        };
+        
+        double[] d = new double[5];
+
+        Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
+        Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
+
+        Size boardSize= new Size(boardWidth,boardHeight);
+        try
+        {//mat.Size()
+            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
+                          CalibrationFlags.FixIntrinsic,TermCriteria.Both(30,1)));
+        }
+        catch (Exception e)
+        {
+            objPoints.Clear();
+            imagePoints.Clear();
+
+            if(OnCalibrationReset != null) OnCalibrationReset();
+            Debug.Log("restarting...");
+        }
+
+        
+        calibrationData.RegisterMatrix(k);
+        Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3] + " " + d[4]);
+        Debug.Log("Finished!!");
+
+        if (OnCalibrationFinished != null)
+        {
+            OnCalibrationFinished(calibrationData);
+        }
+        calibrationMutex.ReleaseMutex();
     }
 
     public void ResetCalibrationImmediate()
@@ -125,11 +143,11 @@ public class CalibrateCamera : WebCamera
         
         bool b = false;
 
-        b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners));
+        b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners),ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage);
 
         if(!b) return;
 
-        Cv2.CornerSubPix(grayMat, corners, new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+        Cv2.CornerSubPix(grayMat, corners, new Size(10, 10), new Size(-1, -1), TermCriteria.Both(30, 0.1));
         Debug.Log(b);
 
         Cv2.DrawChessboardCorners(mat, boardSize, corners, b);
@@ -151,11 +169,11 @@ public class CalibrateCamera : WebCamera
 
     protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
  {
-     if (!int.TryParse(patternSizeString.value, out squareSizeMilimeters))
+     if (!float.TryParse(patternSizeString.value, out squareSizeMilimeters))
      {
          return false;
      }
-     squareSizeMilimeters = int.Parse(patternSizeString.value);
+     squareSizeMilimeters = float.Parse(patternSizeString.value);
         
      TextureParameters.FlipHorizontally = false;
      mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
@@ -167,14 +185,12 @@ public class CalibrateCamera : WebCamera
         
      return true;
  }
- 
-    
-    
- protected override void OnDisable()
+
+    protected override void OnDisable()
  {
      base.OnDisable();
      mat.Release();
      grayMat.Release();
-     
+
  }
 }

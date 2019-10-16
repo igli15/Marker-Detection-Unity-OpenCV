@@ -49,11 +49,12 @@ public class ARCamera : MonoBehaviour
     {
         float width = currentRectSize.x;
         float height = currentRectSize.y;
-
-        if (width < 0 || height < 0) return;
+        
         
         float imgScale = 1.0f;
-
+    
+        if (width <= 0 || height <= 0) return;
+        
         float widthScale = (float)Screen.width / width;
         float heightScale = (float) Screen.height / height;
         
