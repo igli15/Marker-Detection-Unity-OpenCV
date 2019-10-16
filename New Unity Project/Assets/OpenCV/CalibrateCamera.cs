@@ -37,7 +37,7 @@ public class CalibrateCamera : WebCamera
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
 
     private Thread calibrationThread = null;
-    public static Mutex calibrationMutex = new Mutex();
+    //public static Mutex calibrationMutex = new Mutex();
     
     public static Action<CalibrationData> OnCalibrationFinished;
     public static Action OnCalibrationStarted;
@@ -54,7 +54,7 @@ public class CalibrateCamera : WebCamera
 
         boardSize = new Size(boardWidth,boardHeight);
         
-       OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
+       //OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
 
     }
 
@@ -71,7 +71,7 @@ public class CalibrateCamera : WebCamera
     private void Calibrate()
     {
         Debug.Log("Calibrating Async.....");
-        calibrationMutex.WaitOne();
+       // calibrationMutex.WaitOne();
         
         if (OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
 
@@ -118,7 +118,7 @@ public class CalibrateCamera : WebCamera
         {
             OnCalibrationFinished(calibrationData);
         }
-        calibrationMutex.ReleaseMutex();
+        //calibrationMutex.ReleaseMutex();
     }
 
     public void ResetCalibrationImmediate()
