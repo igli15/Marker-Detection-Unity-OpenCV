@@ -28,6 +28,8 @@ public class CalibrateCamera : WebCamera
     private Dictionary dictionary;
     private Mat mat;
     private Mat grayMat = new Mat();
+    private float imageWidth;
+    private float imageHeight;
 
     private Size boardSize;
     private List<Point2f> corners = new List<Point2f>();
@@ -37,6 +39,13 @@ public class CalibrateCamera : WebCamera
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
 
     private Thread calibrationThread = null;
+
+    private bool reset = false;
+
+    private bool captureFrame = false;
+
+    private bool calibrate = false;
+    
     //public static Mutex calibrationMutex = new Mutex();
     
     public static Action<CalibrationData> OnCalibrationFinished;
@@ -75,12 +84,12 @@ public class CalibrateCamera : WebCamera
         
         if (OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
 
-        int maxSize = (int)Mathf.Max(mat.Width, mat.Height);
+        int maxSize = (int)Mathf.Max(imageWidth, imageHeight);
         double fx = maxSize;
         double fy = maxSize;
 
-        double cx = (double)mat.Width / 2;
-        double cy = (double)mat.Height / 2;
+        double cx = (double)imageWidth / 2;
+        double cy = (double)imageHeight / 2;
 
         double[,] k = new double[3, 3]
         {
@@ -97,7 +106,7 @@ public class CalibrateCamera : WebCamera
         Size boardSize= new Size(boardWidth,boardHeight);
         try
         {//mat.Size()
-            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, mat.Size(), k, d, out rvec, out tvec,
+            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth,imageHeight), k, d, out rvec, out tvec,
                           CalibrationFlags.FixIntrinsic,TermCriteria.Both(30,1)));
         }
         catch (Exception e)
@@ -175,13 +184,51 @@ public class CalibrateCamera : WebCamera
      TextureParameters.FlipHorizontally = false;
      mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
 
+     imageWidth = mat.Width;
+     imageHeight = mat.Height;
+     
+     
      Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
+
+     if (reset)
+     {
+         ResetCalibrationImmediate();
+         reset = false;
+     }
+
+     if (captureFrame)
+     {
+         RegisterCurrentCalib();
+         captureFrame = false;
+     }
+
+     if (calibrate)
+     {
+         StartCalibrateAsync();
+         calibrate = false;
+     }
+     
      
      output = ARucoUnityHelper.MatToTexture(mat,output);
      
-        
+     mat.Release();  
      return true;
  }
+
+    public void CaptureFrame()
+    {
+        captureFrame = true;
+    }
+    
+    public void StartCalibration()
+    {
+        calibrate = true;
+    }
+    
+    public void Reset()
+    {
+        reset = true;
+    }
 
     protected override void OnDisable()
  {
