@@ -237,8 +237,10 @@ public class CalibrateCamera : WebCamera
     protected override void OnDisable()
  {
      base.OnDisable();
-     mat.Release();
-     grayMat.Release();
+     
+     if(mat != null && !mat.IsDisposed) mat.Release();
+     
+     if(grayMat != null && !grayMat.IsDisposed) grayMat.Release();
 
  }
 }

@@ -122,23 +122,4 @@ public class CalibrationData : ScriptableObject
              Debug.Log("Can NOT load a calibration file that does not exist!");
          }
      }
-
-     private void SetData(CalibrationData d)
-     {
-         this.m00 = d.m00;
-         this.m01 = d.m01;
-         this.m02 = d.m02;
-         this.m10 = d.m10;
-         this.m11 = d.m11;
-         this.m12 = d.m12;
-         this.m20 = d.m20;
-         this.m21 = d.m21;
-         this.m22 = d.m22;
-         
-         this.dis0 = d.dis0;
-         this.dis1 = d.dis1;
-         this.dis2 = d.dis2;
-         this.dis3 = d.dis3;
-         this.dis4 = d.dis4;
-     }
 }
