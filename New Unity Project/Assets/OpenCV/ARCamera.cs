@@ -119,15 +119,15 @@ public class ARCamera : MonoBehaviour
         double fovYScale = (2.0 * Mathf.Atan ((float)(imgSize.Height / (2.0 * fy)))) / (Mathf.Atan2 ((float)cy, (float)fy) + Mathf.Atan2 ((float)(imgSize.Height - cy), (float)fy));
             
        
-        
+        /*
         if (widthScale < heightScale) {
             arCam.fieldOfView = (float)(fovx * fovXScale);
         } else {
             arCam.fieldOfView = (float)(fovy * fovYScale);
         }
+          */  
             
-            
-           // arCam.fieldOfView = (float)fovy;
+        arCam.fieldOfView = (float)fovy;
         //arCam.aspect = (float)aspectratio;
 
     }
