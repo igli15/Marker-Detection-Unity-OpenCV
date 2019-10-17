@@ -13,7 +13,6 @@ public class ARCamera : MonoBehaviour
     public Camera arCam;
     public Camera webCam;
     public GameObject outputImage;
-    public ArDebugValues arDebugValues;
     public CalibrationData calibrationData;
     private RectTransform imageRectTransform;
     
@@ -116,14 +115,6 @@ public class ARCamera : MonoBehaviour
         Cv2.CalibrationMatrixValues (cameraMatrix, imgSize, apertureWidth, apertureHeight, 
             out fovx, out fovy, out focalLength, out principalPoint, out aspectratio);
 
-        arDebugValues.fovy = (float)fovy;
-        arDebugValues.fovx = (float)fovx;
-        arDebugValues.screenWidth = Screen.width;
-        arDebugValues.screenHeight = Screen.height;
-        arDebugValues.imageWidth = currentRectSize.x;
-        arDebugValues.imageHeight = currentRectSize.y;
-        arDebugValues.imageScale = imgScale;
-        
         double fovXScale = (2.0 * Mathf.Atan ((float)(imgSize.Width / (2.0 * fx)))) / (Mathf.Atan2 ((float)cx, (float)fx) + Mathf.Atan2 ((float)(imgSize.Width - cx), (float)fx));
         double fovYScale = (2.0 * Mathf.Atan ((float)(imgSize.Height / (2.0 * fy)))) / (Mathf.Atan2 ((float)cy, (float)fy) + Mathf.Atan2 ((float)(imgSize.Height - cy), (float)fy));
             
