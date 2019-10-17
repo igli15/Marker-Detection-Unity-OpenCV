@@ -62,7 +62,6 @@ public class MarkerDetector : WebCamera
 
     private void DetectMarkers(Mat img)
     {
-        Debug.Log("here");
         Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
         CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters, out rejectedImgPoints);

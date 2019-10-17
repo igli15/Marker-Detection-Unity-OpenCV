@@ -211,7 +211,7 @@ public class CalibrateCamera : WebCamera
      
      output = ARucoUnityHelper.MatToTexture(mat,output);
      
-     mat.Release();  
+     mat.Release();
      return true;
  }
 
