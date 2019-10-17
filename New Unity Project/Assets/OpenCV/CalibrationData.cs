@@ -114,14 +114,12 @@ public class CalibrationData : ScriptableObject
          if (File.Exists(Application.dataPath + "/" + name + ".txt"))
          {
              string jsonString = File.ReadAllText(Application.dataPath + "/" + name + ".txt");
-
-             CalibrationData d = JsonUtility.FromJson<CalibrationData>(jsonString);
-             
-             SetData(d);
+             Debug.Log("[LOAD] json string: " + jsonString);
+             JsonUtility.FromJsonOverwrite(jsonString,this);
          }
          else
          {
-             Debug.LogError("Can NOT load a calibration file that does not exist!");
+             Debug.Log("Can NOT load a calibration file that does not exist!");
          }
      }
 

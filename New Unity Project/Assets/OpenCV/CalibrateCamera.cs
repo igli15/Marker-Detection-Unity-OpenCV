@@ -54,6 +54,8 @@ public class CalibrateCamera : WebCamera
     
     protected override void Start()
     {
+        calibrationData.LoadData();
+        
         base.Start();
         // Create default parameres for detection
         detectorParameters = DetectorParameters.Create();
@@ -120,6 +122,8 @@ public class CalibrateCamera : WebCamera
 
         
         calibrationData.RegisterMatrix(k);
+        calibrationData.RegisterDistortionCoefficients(d);
+        
         Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3] + " " + d[4]);
         Debug.Log("Finished!!");
 
