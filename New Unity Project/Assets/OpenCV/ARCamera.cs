@@ -37,7 +37,7 @@ public class ARCamera : MonoBehaviour
         {
             currentScreenSize = new Vector2 (Screen.width, Screen.height);
             currentRectSize = oldRectSize;
-            Debug.Log("Calibrating");
+            Debug.Log("Scaling");
 			//imageRectTransform.sizeDelta = new Vector2(Screen.width,Screen.height);	
             Calibrate();
         }
@@ -115,6 +115,11 @@ public class ARCamera : MonoBehaviour
         Cv2.CalibrationMatrixValues (cameraMatrix, imgSize, apertureWidth, apertureHeight, 
             out fovx, out fovy, out focalLength, out principalPoint, out aspectratio);
 
+        fx = cameraMatrix[0, 0];
+        fy = cameraMatrix[1, 1];
+        cx = cameraMatrix[0, 2];
+        cy = cameraMatrix[1, 2];
+        
         double fovXScale = (2.0 * Mathf.Atan ((float)(imgSize.Width / (2.0 * fx)))) / (Mathf.Atan2 ((float)cx, (float)fx) + Mathf.Atan2 ((float)(imgSize.Width - cx), (float)fx));
         double fovYScale = (2.0 * Mathf.Atan ((float)(imgSize.Height / (2.0 * fy)))) / (Mathf.Atan2 ((float)cy, (float)fy) + Mathf.Atan2 ((float)(imgSize.Height - cy), (float)fy));
             

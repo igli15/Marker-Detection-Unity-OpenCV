@@ -129,20 +129,20 @@ public class MarkerBehaviour : MonoBehaviour
 
         double cx = width / 2d;
         double cy = height / 2d;
-/* 
+
         double[,] rawCameraMatrix = new double[3, 3]
         {
             {fx,0d,cx },
             {0d,fy,cy },
             {0d,0d,1d }
         };
-*/
+
         double[] rvec = new double[3] { 0d, 0d, 0d };
         double[] tvec = new double[3] { 0d, 0d, 0d };
 
         double[,] rotMatrix = new double[3, 3] { { 0d, 0d, 0d }, { 0d, 0d, 0d }, { 0d, 0d, 0d } };
 
-        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k, d, out rvec, out tvec, false, SolvePnPFlags.Iterative);
+        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k,new double[4] {0,0,0,0}, out rvec, out tvec,false, SolvePnPFlags.Iterative);
         Cv2.Rodrigues(rvec, out rotMatrix);
 
         Matrix4x4 matrix = new Matrix4x4();

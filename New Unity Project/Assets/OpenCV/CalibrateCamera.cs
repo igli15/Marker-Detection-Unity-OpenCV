@@ -111,7 +111,7 @@ public class CalibrateCamera : WebCamera
         {//mat.Size()
             projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
                 out rvec, out tvec,
-                CalibrationFlags.FixIntrinsic, TermCriteria.Both(objPoints.Count, 0.5));
+                CalibrationFlags.FixIntrinsic, TermCriteria.Both(10, 0.2));
             Debug.Log("Error: " + projectionError);
         }
         catch (Exception e)
@@ -158,7 +158,7 @@ public class CalibrateCamera : WebCamera
 
         if(!b) return;
 
-        Cv2.CornerSubPix(grayMat, corners, new Size(10, 10), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+        Cv2.CornerSubPix(grayMat, corners, new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
         Debug.Log(b);
 
         Cv2.DrawChessboardCorners(mat, boardSize, corners, b);
