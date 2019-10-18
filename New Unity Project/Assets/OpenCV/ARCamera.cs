@@ -127,7 +127,7 @@ public class ARCamera : MonoBehaviour
         }
           */  
             
-        arCam.fieldOfView = (float)fovy;
+        arCam.fieldOfView = (float)fovy * (float)fovYScale;
         //arCam.aspect = (float)aspectratio;
 
     }

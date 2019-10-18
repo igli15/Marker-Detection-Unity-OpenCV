@@ -101,28 +101,29 @@ public class CalibrateCamera : WebCamera
         };
         
         double[] d = new double[5];
-
+        double projectionError = -1;
+        
         Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
         Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
 
         Size boardSize= new Size(boardWidth,boardHeight);
         try
         {//mat.Size()
-            Debug.Log("Error: " + Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth,imageHeight), k, d, out rvec, out tvec,
-                          CalibrationFlags.FixIntrinsic,TermCriteria.Both(30,1)));
+            projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
+                out rvec, out tvec,
+                CalibrationFlags.FixIntrinsic, TermCriteria.Both(objPoints.Count, 0.5));
+            Debug.Log("Error: " + projectionError);
         }
         catch (Exception e)
         {
-            objPoints.Clear();
-            imagePoints.Clear();
-
-            if(OnCalibrationReset != null) OnCalibrationReset();
+            ResetCalibrationImmediate();
             Debug.Log("restarting...");
         }
 
         
         calibrationData.RegisterMatrix(k);
         calibrationData.RegisterDistortionCoefficients(d);
+        calibrationData.projectionError = projectionError;
         
         Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3] + " " + d[4]);
         Debug.Log("Finished!!");

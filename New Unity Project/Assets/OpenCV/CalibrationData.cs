@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Windows;
 using System.IO;
 using File = System.IO.File;
 
@@ -24,6 +23,10 @@ public class CalibrationData : ScriptableObject
     public double dis2;
     public double dis3;
     public double dis4;
+
+    public bool hasCalibratedBefore = false;
+
+    public double projectionError = -1;
     
     public void RegisterMatrix(double[,] m)
     {
@@ -103,17 +106,18 @@ public class CalibrationData : ScriptableObject
 
      public void SaveData()
      {
+         hasCalibratedBefore = true;
          string jsonString = JsonUtility.ToJson(this);
          Debug.Log("[SAVE] json string: " + jsonString);
-         File.WriteAllText(Application.dataPath + "/" + name + ".txt",jsonString);
+         File.WriteAllText(Application.persistentDataPath + "/" + name + ".txt",jsonString);
          Debug.Log("[SAVE] SAVED: " + name);
      }
 
      public void LoadData()
      {
-         if (File.Exists(Application.dataPath + "/" + name + ".txt"))
+         if (File.Exists(Application.persistentDataPath + "/" + name + ".txt"))
          {
-             string jsonString = File.ReadAllText(Application.dataPath + "/" + name + ".txt");
+             string jsonString = File.ReadAllText(Application.persistentDataPath + "/" + name + ".txt");
              Debug.Log("[LOAD] json string: " + jsonString);
              JsonUtility.FromJsonOverwrite(jsonString,this);
          }
