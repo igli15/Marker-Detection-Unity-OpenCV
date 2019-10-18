@@ -40,11 +40,11 @@ public class MarkerBehaviour : MonoBehaviour
         MarkerManager.RegisterMarker(this);
     }
 
-    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners,double[,] k,double[]d)
+    public void UpdateMarker(float renderTexWidth,float renderTexHeight,Point2f[] corners,double[,] k,double[]d,Mat grayMat = null)
     {
         currentMarkerData.corners = corners;
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight,k,d));
+        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth,renderTexHeight,k,d,grayMat));
     }
 
 
@@ -107,7 +107,7 @@ public class MarkerBehaviour : MonoBehaviour
         currentMarkerPose.scale = ARucoUnityHelper.GetScale(currentTransformationMatrix);
     }
 
-    private Matrix4x4 CreateTransformationMatrix(float width, float height,double[,] k,double[] d)
+    private Matrix4x4 CreateTransformationMatrix(float width, float height,double[,] k,double[] d,Mat grayMat = null)
     {
         if (currentMarkerData.corners.Length == 0)
         {
@@ -142,7 +142,14 @@ public class MarkerBehaviour : MonoBehaviour
 
         double[,] rotMatrix = new double[3, 3] { { 0d, 0d, 0d }, { 0d, 0d, 0d }, { 0d, 0d, 0d } };
 
+        if (grayMat != null)
+        {
+            Cv2.CornerSubPix(grayMat, currentMarkerData.corners, new Size(5, 5), new Size(-1, -1),
+                TermCriteria.Both(30, 0.001));
+        }
+        
         Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k,new double[4] {0,0,0,0}, out rvec, out tvec,false, SolvePnPFlags.Iterative);
+
         Cv2.Rodrigues(rvec, out rotMatrix);
 
         Matrix4x4 matrix = new Matrix4x4();
