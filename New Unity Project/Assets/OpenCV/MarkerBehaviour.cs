@@ -148,7 +148,7 @@ public class MarkerBehaviour : MonoBehaviour
                 TermCriteria.Both(30, 0.001));
         }
         
-        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k,new double[4] {0,0,0,0}, out rvec, out tvec,false, SolvePnPFlags.Iterative);
+        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k,d, out rvec, out tvec,false, SolvePnPFlags.Iterative);
 
         Cv2.Rodrigues(rvec, out rotMatrix);
 
