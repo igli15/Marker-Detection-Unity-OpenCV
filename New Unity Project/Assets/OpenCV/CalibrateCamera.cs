@@ -111,7 +111,7 @@ public class CalibrateCamera : WebCamera
         {//mat.Size()
             projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
                 out rvec, out tvec,
-                CalibrationFlags.FixIntrinsic, TermCriteria.Both(10, 0.2));
+                CalibrationFlags.FixAspectRatio,  TermCriteria.Both(30, 0.1));
             Debug.Log("Error: " + projectionError);
         }
         catch (Exception e)
@@ -122,10 +122,16 @@ public class CalibrateCamera : WebCamera
 
         
         calibrationData.RegisterMatrix(k);
-        calibrationData.RegisterDistortionCoefficients(d);
+        //calibrationData.RegisterDistortionCoefficients(d);
         calibrationData.projectionError = projectionError;
+
+        string s = "";
+        for (int i = 0; i < d.Length; i++)
+        {
+            s += d[i] + " ";
+        }
         
-        Debug.Log(d[0] + " "+  d[1] + " " + d[2] + " "+  d[3] + " " + d[4]);
+        Debug.Log(s);
         Debug.Log("Finished!!");
 
         if (OnCalibrationFinished != null)
