@@ -5,9 +5,8 @@ using UnityEngine;
 using OpenCvSharp.Aruco;
 using System;
 
-public class MarkerDetector : WebCamera
+public class MarkerDetector : MonoBehaviour
 {
-    
     //Events thrown each frame holding all ids found/lost
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
@@ -29,10 +28,22 @@ public class MarkerDetector : WebCamera
     private int[] ids;
     private Point2f[][] rejectedImgPoints;
     
-    protected override void Start()
+    protected void Start()
     {
-        base.Start();  
         Init();
+    }
+
+    private void OnEnable()
+    {
+        WebCamera.OnProcessTexture += ProcessTexture;
+    }
+    
+    private void OnDisable()
+    {
+        WebCamera.OnProcessTexture -= ProcessTexture;
+        
+        if(!img.IsDisposed) img.Release();
+        if(!grayedImg.IsDisposed) grayedImg.Release();
     }
 
     void Init()
@@ -45,11 +56,11 @@ public class MarkerDetector : WebCamera
     }
 
     // Our sketch generation function
-    protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
+    private bool ProcessTexture(WebCamTexture input, ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureParameters)
     {
-        TextureParameters.FlipHorizontally = false;
+        textureParameters.FlipHorizontally = false;
 
-        img = ARucoUnityHelper.TextureToMat(input, TextureParameters);
+        img = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
         DetectMarkers(img);
 

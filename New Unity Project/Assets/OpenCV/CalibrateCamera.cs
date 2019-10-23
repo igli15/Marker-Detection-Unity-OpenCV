@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class CalibrateCamera : WebCamera
+public class CalibrateCamera : MonoBehaviour
 {
     [Title("Calibration Settings",null,TitleAlignments.Centered)]
     public int boardWidth;
@@ -52,11 +52,10 @@ public class CalibrateCamera : WebCamera
     public static Action OnCalibrationStarted;
     public static Action OnCalibrationReset;
     
-    protected override void Start()
+    protected void Start()
     {
         calibrationData.LoadData();
         
-        base.Start();
         // Create default parameres for detection
         detectorParameters = DetectorParameters.Create();
 
@@ -67,6 +66,11 @@ public class CalibrateCamera : WebCamera
         
        //OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
 
+    }
+
+    private void OnEnable()
+    {
+        WebCamera.OnProcessTexture += OnProcessTexture;
     }
 
     public void StartCalibrateAsync()
@@ -184,16 +188,17 @@ public class CalibrateCamera : WebCamera
 
     }
 
-    protected override bool ProcessTexture(WebCamTexture input, ref Texture2D output)
- {
+    protected bool OnProcessTexture(WebCamTexture input, ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureParameters)
+    {
+        
+        textureParameters.FlipHorizontally = false;
      if (!float.TryParse(patternSizeString.value, out squareSizeMilimeters))
      {
          return false;
      }
      squareSizeMilimeters = float.Parse(patternSizeString.value);
-        
-     TextureParameters.FlipHorizontally = false;
-     mat = ARucoUnityHelper.TextureToMat(input, TextureParameters);
+     
+     mat = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
      imageWidth = mat.Width;
      imageHeight = mat.Height;
@@ -241,13 +246,13 @@ public class CalibrateCamera : WebCamera
         reset = true;
     }
 
-    protected override void OnDisable()
+    protected void OnDisable()
  {
-     base.OnDisable();
-     
      if(mat != null && !mat.IsDisposed) mat.Release();
      
      if(grayMat != null && !grayMat.IsDisposed) grayMat.Release();
+     
+     WebCamera.OnProcessTexture -= OnProcessTexture;
 
  }
 }

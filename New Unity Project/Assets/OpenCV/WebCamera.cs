@@ -1,95 +1,40 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public abstract class WebCamera : MonoBehaviour
+public class WebCamera : MonoBehaviour
 {
-
-    public GameObject Surface;
+    public GameObject imageGameObject;
     public Vector2Int cameraMaxTextureResolution = new Vector2Int(1920,1080);
+    
     private WebCamDevice? webCamDevice = null;
     private WebCamTexture webCamTexture = null;
     private Texture2D renderedTexture = null;
     
     public int textureFps = 60;
 
-    protected ARucoUnityHelper.TextureConversionParams TextureParameters { get; private set; }
+    protected ARucoUnityHelper.TextureConversionParams textureParameters;
 
     private RawImage rawImage;
-    private AspectRatioFitter aspectRatioFitter;
     private RectTransform imgRectTransform;
 
     public int cameraDeviceIndex = 0;
     
+    public delegate bool OnProcessTextureDelegate(WebCamTexture input,ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureConversionParams);
+    public static event OnProcessTextureDelegate OnProcessTexture;
     
-    private void ReadTextureConversionParameters()
-    {
-        ARucoUnityHelper.TextureConversionParams parameters = new ARucoUnityHelper.TextureConversionParams();
-
-        if (0 != webCamTexture.videoRotationAngle)
-            parameters.RotationAngle = webCamTexture.videoRotationAngle; // cw -> ccw
-        
-        TextureParameters = parameters;
-    }
-
-   
+    
     protected virtual void Start()
     {
-        rawImage = Surface.GetComponent<RawImage>();
-        aspectRatioFitter = Surface.GetComponent<AspectRatioFitter>();
-        imgRectTransform = Surface.GetComponent<RectTransform>();
-        
+        textureParameters = new ARucoUnityHelper.TextureConversionParams();
         SetUpPhysicalCamera(cameraDeviceIndex);
-    }
-
-    void OnDestroy()
-    {
-        if (webCamTexture != null)
-        {
-            if (webCamTexture.isPlaying)
-            {
-                webCamTexture.Stop();
-            }
-            webCamTexture = null;
-        }
         
-        webCamDevice = null;
-        
+        rawImage = imageGameObject.GetComponent<RawImage>();
+        imgRectTransform = imageGameObject.GetComponent<RectTransform>();
     }
     
-    private void Update()
-    {
-        if (webCamTexture.height < 100) return;
-        
-        if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
-        {
-            // this must be called continuously
-            ReadTextureConversionParameters();
-
-            // process texture with whatever method sub-class might have in mind
-            if (ProcessTexture(webCamTexture, ref renderedTexture))
-            {
-                RenderFrame();
-            }
-        }
-    }
-    
-    protected abstract bool ProcessTexture(WebCamTexture input, ref Texture2D output);
-    
-    private void RenderFrame()
-    {
-        if (renderedTexture != null)
-        {
-            // apply
-            rawImage.texture = renderedTexture;
-
-            // Adjust image ration according to the texture sizes 
-            imgRectTransform.sizeDelta = new Vector2(renderedTexture.width, renderedTexture.height);
-        }
-    }
-
-
-    private void SetUpPhysicalCamera(int deviceIndex)
+    public void SetUpPhysicalCamera(int deviceIndex)
     {
         if (WebCamTexture.devices.Length <= 0)
         {
@@ -123,8 +68,63 @@ public abstract class WebCamera : MonoBehaviour
         if(play) webCamTexture.Play();
     }
 
+    private void Update()
+    {
+        if (webCamTexture.height < 100) return;
+        
+        if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
+        {
+            ReadTextureConversionParameters();
+
+            if (OnProcessTexture != null && OnProcessTexture(webCamTexture, ref renderedTexture,textureParameters))
+            {
+                RenderFrame();
+            }
+            
+            /*
+            if (ProcessTexture(webCamTexture,ref renderedTexture))
+            {
+                RenderFrame();
+            }
+            */
+        }
+    }
+    
+    //protected abstract bool ProcessTexture(WebCamTexture input,ref Texture2D output);
+    
+    private void RenderFrame()
+    {
+        if (renderedTexture != null)
+        {
+            // apply
+            rawImage.texture = renderedTexture;
+
+            // Adjust image ration according to the texture sizes 
+            imgRectTransform.sizeDelta = new Vector2(renderedTexture.width, renderedTexture.height);
+        }
+    }
+    
+    private void ReadTextureConversionParameters()
+    {
+        if (0 != webCamTexture.videoRotationAngle)
+            textureParameters.RotationAngle = webCamTexture.videoRotationAngle; // cw -> ccw
+    }
+
     protected virtual void OnDisable()
     {
         webCamTexture.Stop();
+    }
+    
+    void OnDestroy()
+    {
+        if (webCamTexture != null)
+        {
+            if (webCamTexture.isPlaying)
+            {
+                webCamTexture.Stop();
+            }
+            webCamTexture = null;
+        }
+        webCamDevice = null;
     }
 }
