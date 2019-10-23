@@ -6,20 +6,16 @@ using UnityEngine.UI;
 public class WebCamera : MonoBehaviour
 {
     public GameObject imageGameObject;
-    public Vector2Int cameraMaxTextureResolution = new Vector2Int(1920, 1080);
+    public WebCameraSettings webCamSettings;
 
     private WebCamDevice? webCamDevice = null;
     private WebCamTexture webCamTexture = null;
     private Texture2D renderedTexture = null;
 
-    public int textureFps = 60;
-
     private ARucoUnityHelper.TextureConversionParams textureParameters;
 
     private RawImage rawImage;
     private RectTransform imgRectTransform;
-
-    public int cameraDeviceIndex = 0;
 
     public delegate bool OnProcessTextureDelegate(WebCamTexture input, ref Texture2D output,
         ARucoUnityHelper.TextureConversionParams textureConversionParams);
@@ -29,7 +25,7 @@ public class WebCamera : MonoBehaviour
     protected virtual void Start()
     {
         textureParameters = new ARucoUnityHelper.TextureConversionParams();
-        SetUpPhysicalCamera(cameraDeviceIndex);
+        SetUpPhysicalCamera(webCamSettings.cameraIndex);
 
         rawImage = imageGameObject.GetComponent<RawImage>();
         imgRectTransform = imageGameObject.GetComponent<RectTransform>();
@@ -52,12 +48,12 @@ public class WebCamera : MonoBehaviour
 
         webCamDevice = WebCamTexture.devices[deviceIndex];
 
-        webCamTexture = new WebCamTexture(webCamDevice.Value.name, (int) cameraMaxTextureResolution.x,
-            (int) cameraMaxTextureResolution.y, textureFps);
+        webCamTexture = new WebCamTexture(webCamDevice.Value.name,webCamSettings.requestedWidth,
+            webCamSettings.requestedHeight, webCamSettings.TextureFPS);
 
         ReadTextureConversionParameters();
 
-        AssignNewCameraTextureResolution(cameraMaxTextureResolution.x, cameraMaxTextureResolution.y, true);
+        AssignNewCameraTextureResolution(webCamSettings.requestedWidth, webCamSettings.requestedHeight, true);
     }
 
     public void AssignNewCameraTextureResolution(int requestedWidth, int requestedHeight, bool play = true)
