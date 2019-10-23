@@ -8,14 +8,15 @@ using System;
 public class MarkerDetector : MonoBehaviour
 {
     public WebCamera webCamera;
+
     //Events thrown each frame holding all ids found/lost
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
-    
+
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
-    
+
     public CalibrationData calibrationData;
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
@@ -24,11 +25,11 @@ public class MarkerDetector : MonoBehaviour
 
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
-    
+
     private Point2f[][] corners;
     private int[] ids;
     private Point2f[][] rejectedImgPoints;
-    
+
     protected void Start()
     {
         Init();
@@ -38,26 +39,27 @@ public class MarkerDetector : MonoBehaviour
     {
         webCamera.OnProcessTexture += ProcessTexture;
     }
-    
+
     private void OnDisable()
     {
         webCamera.OnProcessTexture -= ProcessTexture;
-        
-        if(!img.IsDisposed) img.Release();
-        if(!grayedImg.IsDisposed) grayedImg.Release();
+
+        if (!img.IsDisposed) img.Release();
+        if (!grayedImg.IsDisposed) grayedImg.Release();
     }
 
     void Init()
     {
         detectorParameters = DetectorParameters.Create();
-       
+
         detectorParameters.DoCornerRefinement = doCornerRefinement;
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
     }
 
     // Our sketch generation function
-    private bool ProcessTexture(WebCamTexture input, ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureParameters)
+    private bool ProcessTexture(WebCamTexture input, ref Texture2D output,
+        ARucoUnityHelper.TextureConversionParams textureParameters)
     {
         textureParameters.FlipHorizontally = false;
 
@@ -83,13 +85,13 @@ public class MarkerDetector : MonoBehaviour
         CheckIfLostMarkers(ids);
 
         //Debug.Log(ids.Length);
-        
+
         //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
         if (ids.Length > 0 && OnMarkersDetected != null)
         {
             OnMarkersDetected.Invoke(ids);
         }
-        
+
         for (int i = 0; i < ids.Length; i++)
         {
             Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
@@ -108,7 +110,8 @@ public class MarkerDetector : MonoBehaviour
             }
 
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-            m.UpdateMarker(img.Cols, img.Rows, corners[i],calibrationData.GetCameraMatrix(),calibrationData.GetDistortionCoefficients(),grayedImg);
+            m.UpdateMarker(img.Cols, img.Rows, corners[i], calibrationData.GetCameraMatrix(),
+                calibrationData.GetDistortionCoefficients(), grayedImg);
         }
     }
 
@@ -155,7 +158,7 @@ public class MarkerDetector : MonoBehaviour
         {
             allDetectedMarkers.Remove(i);
         }
+
         lostIds.Clear();
     }
-    
 }

@@ -15,17 +15,18 @@ using UnityEngine.UI;
 public class CalibrateCamera : MonoBehaviour
 {
     public WebCamera webCamera;
-    
-    [Title("Calibration Settings",null,TitleAlignments.Centered)]
+
+    [Title("Calibration Settings", null, TitleAlignments.Centered)]
     public int boardWidth;
-    public int boardHeight; 
+
+    public int boardHeight;
     public float squareSizeMeters;
 
     public CalibrationData calibrationData;
-    
-    [Title("Variables",null,TitleAlignments.Centered)]
+
+    [Title("Variables", null, TitleAlignments.Centered)]
     public StringVariable patternSizeString;
-    
+
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat mat;
@@ -36,8 +37,8 @@ public class CalibrateCamera : MonoBehaviour
     private Size boardSize;
     private List<Point2f> corners = new List<Point2f>();
     private List<Point3f> obj = new List<Point3f>();
-    
-    private List<List<Point2f>>  imagePoints = new List<List<Point2f>>();
+
+    private List<List<Point2f>> imagePoints = new List<List<Point2f>>();
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
 
     private Thread calibrationThread = null;
@@ -47,27 +48,26 @@ public class CalibrateCamera : MonoBehaviour
     private bool captureFrame = false;
 
     private bool calibrate = false;
-    
+
     //public static Mutex calibrationMutex = new Mutex();
-    
+
     public static Action<CalibrationData> OnCalibrationFinished;
     public static Action OnCalibrationStarted;
     public static Action OnCalibrationReset;
-    
+
     protected void Start()
     {
         calibrationData.LoadData();
-        
+
         // Create default parameres for detection
         detectorParameters = DetectorParameters.Create();
 
         // Dictionary holds set of all available markers
         dictionary = CvAruco.GetPredefinedDictionary(PredefinedDictionaryName.Dict4X4_1000);
 
-        boardSize = new Size(boardWidth,boardHeight);
-        
-       //OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
+        boardSize = new Size(boardWidth, boardHeight);
 
+        //OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
     }
 
     private void OnEnable()
@@ -84,20 +84,20 @@ public class CalibrateCamera : MonoBehaviour
             calibrationThread.Start();
         }
     }
-    
+
     private void Calibrate()
     {
         Debug.Log("Calibrating Async.....");
-       // calibrationMutex.WaitOne();
-        
+        // calibrationMutex.WaitOne();
+
         if (OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
 
-        int maxSize = (int)Mathf.Max(imageWidth, imageHeight);
+        int maxSize = (int) Mathf.Max(imageWidth, imageHeight);
         double fx = maxSize;
         double fy = maxSize;
 
-        double cx = (double)imageWidth / 2;
-        double cy = (double)imageHeight / 2;
+        double cx = (double) imageWidth / 2;
+        double cy = (double) imageHeight / 2;
 
         double[,] k = new double[3, 3]
         {
@@ -105,19 +105,20 @@ public class CalibrateCamera : MonoBehaviour
             {0d, fy, cy},
             {0d, 0d, 1d}
         };
-        
+
         double[] d = new double[5];
         double projectionError = -1;
-        
-        Vec3d[] rvec = new Vec3d[boardWidth *  boardHeight];
-        Vec3d[] tvec = new Vec3d[boardWidth *  boardHeight];
 
-        Size boardSize= new Size(boardWidth,boardHeight);
+        Vec3d[] rvec = new Vec3d[boardWidth * boardHeight];
+        Vec3d[] tvec = new Vec3d[boardWidth * boardHeight];
+
+        Size boardSize = new Size(boardWidth, boardHeight);
         try
-        {//mat.Size()
+        {
+            //mat.Size()
             projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
                 out rvec, out tvec,
-                CalibrationFlags.FixAspectRatio,  TermCriteria.Both(30, 0.1));
+                CalibrationFlags.FixAspectRatio, TermCriteria.Both(30, 0.1));
             Debug.Log("Error: " + projectionError);
         }
         catch (Exception e)
@@ -126,7 +127,7 @@ public class CalibrateCamera : MonoBehaviour
             Debug.Log("restarting...");
         }
 
-        
+
         calibrationData.RegisterMatrix(k);
         //calibrationData.RegisterDistortionCoefficients(d);
         calibrationData.projectionError = projectionError;
@@ -136,7 +137,7 @@ public class CalibrateCamera : MonoBehaviour
         {
             s += d[i] + " ";
         }
-        
+
         Debug.Log(s);
         Debug.Log("Finished!!");
 
@@ -144,42 +145,44 @@ public class CalibrateCamera : MonoBehaviour
         {
             OnCalibrationFinished(calibrationData);
         }
+
         //calibrationMutex.ReleaseMutex();
     }
 
     public void ResetCalibrationImmediate()
     {
-        
         objPoints.Clear();
         imagePoints.Clear();
 
-        if(CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
-        
+        if (CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
+
         Debug.Log("Reseting....");
     }
+
     public void RegisterCurrentCalib()
     {
         corners.Clear();
         obj.Clear();
         //imagePoints.Clear();
         //objPoints.Clear();
-        
+
         bool b = false;
 
-        b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners),ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage);
+        b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners),
+            ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage);
 
-        if(!b) return;
+        if (!b) return;
 
         Cv2.CornerSubPix(grayMat, corners, new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
         Debug.Log(b);
 
         Cv2.DrawChessboardCorners(mat, boardSize, corners, b);
-        
+
         for (int i = 0; i < boardSize.Height; i++)
         {
             for (int j = 0; j < boardSize.Width; j++)
             {
-                obj.Add(new Point3f((float)j * squareSizeMeters, (float)i * squareSizeMeters, 0));
+                obj.Add(new Point3f((float) j * squareSizeMeters, (float) i * squareSizeMeters, 0));
                 if (b)
                 {
                     imagePoints.Add(corners);
@@ -187,74 +190,74 @@ public class CalibrateCamera : MonoBehaviour
                 }
             }
         }
-
     }
 
-    protected bool OnProcessTexture(WebCamTexture input, ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureParameters)
+    private bool OnProcessTexture(WebCamTexture input, ref Texture2D output,
+        ARucoUnityHelper.TextureConversionParams textureParameters)
     {
-        
         textureParameters.FlipHorizontally = false;
-     if (!float.TryParse(patternSizeString.value, out squareSizeMeters))
-     {
-         return false;
-     }
-     squareSizeMeters = float.Parse(patternSizeString.value);
-     
-     mat = ARucoUnityHelper.TextureToMat(input, textureParameters);
+        if (!float.TryParse(patternSizeString.value, out squareSizeMeters))
+        {
+            return false;
+        }
 
-     imageWidth = mat.Width;
-     imageHeight = mat.Height;
-     
-     
-     Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
+        squareSizeMeters = float.Parse(patternSizeString.value);
 
-     if (reset)
-     {
-         ResetCalibrationImmediate();
-         reset = false;
-     }
+        mat = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
-     if (captureFrame)
-     {
-         RegisterCurrentCalib();
-         captureFrame = false;
-     }
+        Debug.Log("Width: " + mat.Width + " Height: " + mat.Height);
+        imageWidth = mat.Width;
+        imageHeight = mat.Height;
 
-     if (calibrate)
-     {
-         StartCalibrateAsync();
-         calibrate = false;
-     }
-     
-     
-     output = ARucoUnityHelper.MatToTexture(mat,output);
-     
-     mat.Release();
-     return true;
- }
+
+        Cv2.CvtColor(mat, grayMat, ColorConversionCodes.BGR2GRAY);
+
+        if (reset)
+        {
+            ResetCalibrationImmediate();
+            reset = false;
+        }
+
+        if (captureFrame)
+        {
+            RegisterCurrentCalib();
+            captureFrame = false;
+        }
+
+        if (calibrate)
+        {
+            StartCalibrateAsync();
+            calibrate = false;
+        }
+
+
+        output = ARucoUnityHelper.MatToTexture(mat, output);
+
+        mat.Release();
+        return true;
+    }
 
     public void CaptureFrame()
     {
         captureFrame = true;
     }
-    
+
     public void StartCalibration()
     {
         calibrate = true;
     }
-    
+
     public void Reset()
     {
         reset = true;
     }
 
     protected void OnDisable()
- {
-     if(mat != null && !mat.IsDisposed) mat.Release();
-     
-     if(grayMat != null && !grayMat.IsDisposed) grayMat.Release();
-     
-     webCamera.OnProcessTexture -= OnProcessTexture;
+    {
+        if (mat != null && !mat.IsDisposed) mat.Release();
 
- }
+        if (grayMat != null && !grayMat.IsDisposed) grayMat.Release();
+
+        webCamera.OnProcessTexture -= OnProcessTexture;
+    }
 }
