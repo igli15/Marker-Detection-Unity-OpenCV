@@ -108,22 +108,24 @@ public class WebCamera : MonoBehaviour
         if (0 != webCamTexture.videoRotationAngle)
             textureParameters.RotationAngle = webCamTexture.videoRotationAngle; // cw -> ccw
     }
-
-    protected virtual void OnDisable()
-    {
-        webCamTexture.Stop();
-    }
     
     void OnDestroy()
     {
-        if (webCamTexture != null)
+        if (webCamTexture != null && webCamTexture.isPlaying)
         {
-            if (webCamTexture.isPlaying)
+            Debug.Log("Camera is still playing");
+            webCamTexture.Pause();     
+
+            while (webCamTexture.isPlaying)
             {
-                webCamTexture.Stop();
+                Debug.Log("Camera is stopping....");
             }
-            webCamTexture = null;
+
+            Debug.Log("Camera stopped playing");
         }
+
+        webCamTexture.Stop();
+        webCamTexture = null;
         webCamDevice = null;
     }
 }
