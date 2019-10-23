@@ -14,7 +14,7 @@ public class WebCamera : MonoBehaviour
     
     public int textureFps = 60;
 
-    protected ARucoUnityHelper.TextureConversionParams textureParameters;
+    private ARucoUnityHelper.TextureConversionParams textureParameters;
 
     private RawImage rawImage;
     private RectTransform imgRectTransform;

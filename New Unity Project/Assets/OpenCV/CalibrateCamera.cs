@@ -18,8 +18,8 @@ public class CalibrateCamera : MonoBehaviour
     
     [Title("Calibration Settings",null,TitleAlignments.Centered)]
     public int boardWidth;
-    public int boardHeight;
-    public float squareSizeMilimeters;
+    public int boardHeight; 
+    public float squareSizeMeters;
 
     public CalibrationData calibrationData;
     
@@ -179,7 +179,7 @@ public class CalibrateCamera : MonoBehaviour
         {
             for (int j = 0; j < boardSize.Width; j++)
             {
-                obj.Add(new Point3f((float)j * squareSizeMilimeters, (float)i * squareSizeMilimeters, 0));
+                obj.Add(new Point3f((float)j * squareSizeMeters, (float)i * squareSizeMeters, 0));
                 if (b)
                 {
                     imagePoints.Add(corners);
@@ -194,11 +194,11 @@ public class CalibrateCamera : MonoBehaviour
     {
         
         textureParameters.FlipHorizontally = false;
-     if (!float.TryParse(patternSizeString.value, out squareSizeMilimeters))
+     if (!float.TryParse(patternSizeString.value, out squareSizeMeters))
      {
          return false;
      }
-     squareSizeMilimeters = float.Parse(patternSizeString.value);
+     squareSizeMeters = float.Parse(patternSizeString.value);
      
      mat = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
