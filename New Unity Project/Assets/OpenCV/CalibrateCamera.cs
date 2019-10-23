@@ -14,6 +14,8 @@ using UnityEngine.UI;
 
 public class CalibrateCamera : MonoBehaviour
 {
+    public WebCamera webCamera;
+    
     [Title("Calibration Settings",null,TitleAlignments.Centered)]
     public int boardWidth;
     public int boardHeight;
@@ -70,7 +72,7 @@ public class CalibrateCamera : MonoBehaviour
 
     private void OnEnable()
     {
-        WebCamera.OnProcessTexture += OnProcessTexture;
+        webCamera.OnProcessTexture += OnProcessTexture;
     }
 
     public void StartCalibrateAsync()
@@ -252,7 +254,7 @@ public class CalibrateCamera : MonoBehaviour
      
      if(grayMat != null && !grayMat.IsDisposed) grayMat.Release();
      
-     WebCamera.OnProcessTexture -= OnProcessTexture;
+     webCamera.OnProcessTexture -= OnProcessTexture;
 
  }
 }

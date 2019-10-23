@@ -22,8 +22,7 @@ public class WebCamera : MonoBehaviour
     public int cameraDeviceIndex = 0;
     
     public delegate bool OnProcessTextureDelegate(WebCamTexture input,ref Texture2D output,ARucoUnityHelper.TextureConversionParams textureConversionParams);
-    public static event OnProcessTextureDelegate OnProcessTexture;
-    
+    public event OnProcessTextureDelegate OnProcessTexture;
     
     protected virtual void Start()
     {

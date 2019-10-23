@@ -7,6 +7,7 @@ using System;
 
 public class MarkerDetector : MonoBehaviour
 {
+    public WebCamera webCamera;
     //Events thrown each frame holding all ids found/lost
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
@@ -35,12 +36,12 @@ public class MarkerDetector : MonoBehaviour
 
     private void OnEnable()
     {
-        WebCamera.OnProcessTexture += ProcessTexture;
+        webCamera.OnProcessTexture += ProcessTexture;
     }
     
     private void OnDisable()
     {
-        WebCamera.OnProcessTexture -= ProcessTexture;
+        webCamera.OnProcessTexture -= ProcessTexture;
         
         if(!img.IsDisposed) img.Release();
         if(!grayedImg.IsDisposed) grayedImg.Release();
