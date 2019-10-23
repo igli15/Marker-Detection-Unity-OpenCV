@@ -21,7 +21,7 @@ public class CalibrateCamera : MonoBehaviour
 
     public int boardHeight;
     public float squareSizeMeters;
-
+    public OpenCvSharp.CalibrationFlags calibrationFlags;
     public CalibrationData calibrationData;
 
     [Title("Variables", null, TitleAlignments.Centered)]
@@ -118,7 +118,7 @@ public class CalibrateCamera : MonoBehaviour
             //mat.Size()
             projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
                 out rvec, out tvec,
-                CalibrationFlags.FixAspectRatio, TermCriteria.Both(30, 0.1));
+                calibrationFlags, TermCriteria.Both(30, 0.1));
             Debug.Log("Error: " + projectionError);
         }
         catch (Exception e)
