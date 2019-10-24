@@ -70,11 +70,7 @@ public class WebCamera : MonoBehaviour
     private void Update()
     {
         if (webCamTexture.height < 100) return;
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            AssignNewCameraTextureResolution(200,200,true);
-        }
+        
         if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
         {
             ReadTextureConversionParameters();

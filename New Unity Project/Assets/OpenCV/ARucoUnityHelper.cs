@@ -99,6 +99,7 @@ public class ARucoUnityHelper
        // Array.Resize(ref pixels,texture.GetRawTextureData<Color32>().Length);
        //texture.GetRawTextureData<Color32>().CopyTo(pixels);
 
+       Array.Resize(ref pixels, texture.width * texture.height);
        pixels = texture.GetPixels32();
        return PixelsToMat(pixels, texture.width, texture.height, parameters.FlipVertically, parameters.FlipHorizontally, parameters.RotationAngle);
     }
@@ -114,6 +115,8 @@ public class ARucoUnityHelper
         if (null == parameters)
             parameters = TextureConversionParams.Default;
 
+        Array.Resize(ref pixels2, texture.width * texture.height);
+        
         pixels2 = texture.GetPixels32(pixels2);
         return PixelsToMat(pixels2, texture.width, texture.height, parameters.FlipVertically, parameters.FlipHorizontally, parameters.RotationAngle);
     }
