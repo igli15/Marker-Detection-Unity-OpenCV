@@ -25,6 +25,11 @@ public class WebCamera : MonoBehaviour
 
     public delegate void OnTextureResolutionChangedDelegate(int newWidth, int newHeight);
     public event OnTextureResolutionChangedDelegate OnTextureResolutionChanged;
+
+
+    private float dtCounter = 0;
+    private int callCount = 0;
+    private int maxCallCount = 0;
     
     protected virtual void Start()
     {
@@ -75,6 +80,7 @@ public class WebCamera : MonoBehaviour
         StartCoroutine(CallResolutionChangedEvent());
     }
 
+    //adds a delay to the callback since the widht/height take some time till they are actually changed.
     IEnumerator CallResolutionChangedEvent()
     {
         yield return new WaitForSeconds(3);
@@ -85,6 +91,16 @@ public class WebCamera : MonoBehaviour
     private void Update()
     {
         if (webCamTexture.height < 100) return;
+
+
+        dtCounter += Time.deltaTime;
+        if (dtCounter > 1)
+        {
+            maxCallCount = callCount;
+            dtCounter = 0;
+            callCount = 0;
+        }
+        //Debug.Log(dtCounter);
         
         if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
         {
@@ -92,6 +108,7 @@ public class WebCamera : MonoBehaviour
             
             if (OnProcessTexture != null && OnProcessTexture(webCamTexture, ref renderedTexture, textureParameters))
             {
+                if (dtCounter <= 1) callCount += 1;
                 RenderFrame();
             }
 
@@ -102,6 +119,8 @@ public class WebCamera : MonoBehaviour
             }
             */
         }
+        
+        Debug.Log(callCount);
     }
 
     //protected abstract bool ProcessTexture(WebCamTexture input,ref Texture2D output);
@@ -142,5 +161,21 @@ public class WebCamera : MonoBehaviour
         webCamTexture.Stop();
         webCamTexture = null;
         webCamDevice = null;
+    }
+    
+    void OnGUI()
+    {
+        int w = Screen.width, h = Screen.height;
+ 
+        GUIStyle style = new GUIStyle();
+ 
+        Rect rect = new Rect(0, 40, w, h * 2 / 100);
+        style.alignment = TextAnchor.UpperLeft;
+        style.fontSize = h * 2 / 100;
+        style.normal.textColor = new Color (0.0f, 0.0f, 0.5f, 1.0f);
+
+        string text = "Texture Update Rate: " + maxCallCount.ToString() + "\n" + "Texture Requested FPS: " + webCamSettings.TextureFPS.ToString() ;
+        GUI.Label(rect, text, style);
+        
     }
 }
