@@ -33,6 +33,7 @@ public class WebCamera : MonoBehaviour
     
     protected virtual void Start()
     {
+        Application.targetFrameRate = 60;
         textureParameters = new ARucoUnityHelper.TextureConversionParams();
         SetUpPhysicalCamera(webCamSettings.cameraIndex);
 
