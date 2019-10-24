@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -22,6 +23,9 @@ public class WebCamera : MonoBehaviour
 
     public event OnProcessTextureDelegate OnProcessTexture;
 
+    public delegate void OnTextureResolutionChangedDelegate(int newWidth, int newHeight);
+    public event OnTextureResolutionChangedDelegate OnTextureResolutionChanged;
+    
     protected virtual void Start()
     {
         textureParameters = new ARucoUnityHelper.TextureConversionParams();
@@ -61,10 +65,21 @@ public class WebCamera : MonoBehaviour
         if (webCamTexture.isPlaying) webCamTexture.Pause();
         
         webCamTexture.Stop();
+
         webCamTexture.requestedWidth = requestedWidth;
         webCamTexture.requestedHeight = requestedHeight;
+        
 
         if (play) webCamTexture.Play();
+
+        StartCoroutine(CallResolutionChangedEvent());
+    }
+
+    IEnumerator CallResolutionChangedEvent()
+    {
+        yield return new WaitForSeconds(3);
+        OnTextureResolutionChanged?.Invoke(webCamTexture.width, webCamTexture.height);
+        yield return null;
     }
 
     private void Update()
