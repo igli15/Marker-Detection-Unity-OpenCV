@@ -58,8 +58,9 @@ public class WebCamera : MonoBehaviour
 
     public void AssignNewCameraTextureResolution(int requestedWidth, int requestedHeight, bool play = true)
     {
-        if (webCamTexture.isPlaying) webCamTexture.Stop();
-
+        if (webCamTexture.isPlaying) webCamTexture.Pause();
+        
+        webCamTexture.Stop();
         webCamTexture.requestedWidth = requestedWidth;
         webCamTexture.requestedHeight = requestedHeight;
 
@@ -70,10 +71,14 @@ public class WebCamera : MonoBehaviour
     {
         if (webCamTexture.height < 100) return;
 
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            AssignNewCameraTextureResolution(200,200,true);
+        }
         if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
         {
             ReadTextureConversionParameters();
-
+            
             if (OnProcessTexture != null && OnProcessTexture(webCamTexture, ref renderedTexture, textureParameters))
             {
                 RenderFrame();
