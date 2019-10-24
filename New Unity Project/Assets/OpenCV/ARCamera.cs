@@ -37,8 +37,7 @@ public class ARCamera : MonoBehaviour
         {
             currentScreenSize = new Vector2 (Screen.width, Screen.height);
             currentRectSize = oldRectSize;
-            Debug.Log("Scaling");
-			//imageRectTransform.sizeDelta = new Vector2(Screen.width,Screen.height);	
+
             Calibrate();
         }
     }

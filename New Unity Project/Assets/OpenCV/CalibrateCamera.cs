@@ -205,7 +205,8 @@ public class CalibrateCamera : MonoBehaviour
 
         mat = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
-        Debug.Log("Width: " + mat.Width + " Height: " + mat.Height);
+        //Debug.Log("Width: " + mat.Width + " Height: " + mat.Height);
+        
         imageWidth = mat.Width;
         imageHeight = mat.Height;
 
