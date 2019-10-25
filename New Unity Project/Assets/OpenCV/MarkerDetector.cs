@@ -53,8 +53,10 @@ public class MarkerDetector : MonoBehaviour
         detectorParameters = DetectorParameters.Create();
 
         detectorParameters.DoCornerRefinement = doCornerRefinement;
+        //detectorParameters.CornerRefinementMinAccuracy = 0.01f;
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
+        
     }
 
     // Our sketch generation function

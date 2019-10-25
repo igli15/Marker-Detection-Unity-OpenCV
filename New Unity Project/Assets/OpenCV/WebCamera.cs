@@ -121,7 +121,6 @@ public class WebCamera : MonoBehaviour
             */
         }
         
-        Debug.Log(callCount);
     }
 
     //protected abstract bool ProcessTexture(WebCamTexture input,ref Texture2D output);
