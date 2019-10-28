@@ -139,6 +139,8 @@ public class WebCamera : MonoBehaviour
 
     private void ReadTextureConversionParameters()
     {
+        textureParameters.FlipHorizontally = false;
+        
         if (0 != webCamTexture.videoRotationAngle)
             textureParameters.RotationAngle = webCamTexture.videoRotationAngle; // cw -> ccw
     }

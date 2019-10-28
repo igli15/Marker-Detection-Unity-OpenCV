@@ -69,8 +69,6 @@ public class MarkerDetector : MonoBehaviour
     private bool ProcessTexture(WebCamTexture input, ref Texture2D output,
         ARucoUnityHelper.TextureConversionParams textureParameters)
     {
-        textureParameters.FlipHorizontally = false;
-
         img = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
         imgRows = img.Rows;
@@ -78,7 +76,7 @@ public class MarkerDetector : MonoBehaviour
         
         Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
         
-        DetectMarkerAsync(img);
+        DetectMarkerAsync();
 
         output = ARucoUnityHelper.MatToTexture(img, output);
 
@@ -87,11 +85,11 @@ public class MarkerDetector : MonoBehaviour
     }
 
 
-    private void DetectMarkerAsync(Mat img)
+    private void DetectMarkerAsync()
     {
         if (detectMarkersThread == null || !detectMarkersThread.IsAlive)
         {
-           detectMarkersThread = new Thread(()=> DetectMarkers(img));
+           detectMarkersThread = new Thread(DetectMarkers);
            detectMarkersThread.Start();
         }
     }
@@ -143,7 +141,7 @@ public class MarkerDetector : MonoBehaviour
         lostIds.Clear();
     }
 
-    private void DetectMarkers(Mat img)
+    private void DetectMarkers()
     {
         CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
           out rejectedImgPoints);
