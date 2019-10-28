@@ -37,11 +37,11 @@ public class MarkerDetector : MonoBehaviour
     private int imgRows;
 
     bool updateThread = false;
-    
+
     protected void Start()
     {
         Init();
-        
+
         DetectMarkerAsync();
     }
 
@@ -66,7 +66,6 @@ public class MarkerDetector : MonoBehaviour
         //detectorParameters.CornerRefinementMinAccuracy = 0.01f;
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
-        
     }
 
     // Our sketch generation function
@@ -77,9 +76,9 @@ public class MarkerDetector : MonoBehaviour
 
         imgRows = img.Rows;
         imgCols = img.Cols;
-        
+
         Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
-        
+
         updateThread = true;
         //DetectMarkerAsync();
 
@@ -94,12 +93,12 @@ public class MarkerDetector : MonoBehaviour
     {
         if (detectMarkersThread == null || !detectMarkersThread.IsAlive)
         {
-           detectMarkersThread = new Thread(DetectMarkers);
-           detectMarkersThread.Start();
+            detectMarkersThread = new Thread(DetectMarkers);
+            detectMarkersThread.Start();
         }
     }
 
-    private void CheckIfLostMarkers(int[] ids)
+    private void CheckIfLostMarkers()
     {
         if (ids.Length == 0)
         {
@@ -146,21 +145,52 @@ public class MarkerDetector : MonoBehaviour
         lostIds.Clear();
     }
 
+    private void CheckIfDetectedMarkers()
+    {
+        if (ids.Length > 0 && OnMarkersDetected != null)
+        {
+            OnMarkersDetected.Invoke(ids);
+        }
+
+        for (int i = 0; i < ids.Length; i++)
+        {
+            Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+
+            if (!MarkerManager.IsMarkerRegistered(ids[i]))
+            {
+                continue;
+            }
+
+            MarkerBehaviour m = MarkerManager.GetMarker(ids[i]);
+
+            if (!allDetectedMarkers.ContainsKey(ids[i]))
+            {
+                m.OnMarkerDetected.Invoke();
+                allDetectedMarkers.Add(m.GetMarkerID(), m);
+            }
+
+            // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
+            m.UpdateMarker(imgCols, imgRows, corners[i], calibrationData.GetCameraMatrix(),
+                calibrationData.GetDistortionCoefficients(), grayedImg);
+        }
+    }
+
     private void DetectMarkers()
     {
         while (true)
         {
-            Debug.Log("updating thread....");
-            
+            //Debug.Log("updating thread....");
+
             if (grayedImg.IsDisposed || !updateThread)
             {
                 //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
                 //mono behaviour or we haven't updated the main thread yet!
-                
+
                 // Debug.Log("grayed img was disposed");
                 continue;
             }
-            
+
+
             CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                 out rejectedImgPoints);
 
@@ -168,37 +198,12 @@ public class MarkerDetector : MonoBehaviour
             //Debug.Log(ids.Length);
             //CvAruco.DrawDetectedMarkers(img, corners, ids);
 
-            CheckIfLostMarkers(ids);
+            CheckIfLostMarkers();
+            CheckIfDetectedMarkers();
 
             //Debug.Log(ids.Length);
 
             //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
-            if (ids.Length > 0 && OnMarkersDetected != null)
-            {
-                OnMarkersDetected.Invoke(ids);
-            }
-
-            for (int i = 0; i < ids.Length; i++)
-            {
-                Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
-
-                if (!MarkerManager.IsMarkerRegistered(ids[i]))
-                {
-                    continue;
-                }
-
-                MarkerBehaviour m = MarkerManager.GetMarker(ids[i]);
-
-                if (!allDetectedMarkers.ContainsKey(ids[i]))
-                {
-                    m.OnMarkerDetected.Invoke();
-                    allDetectedMarkers.Add(m.GetMarkerID(), m);
-                }
-
-                // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-                m.UpdateMarker(imgCols, imgRows, corners[i], calibrationData.GetCameraMatrix(),
-                    calibrationData.GetDistortionCoefficients(), grayedImg);
-            }
         }
     }
 }
