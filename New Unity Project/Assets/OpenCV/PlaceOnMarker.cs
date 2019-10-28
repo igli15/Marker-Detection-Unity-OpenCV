@@ -6,15 +6,19 @@ public class PlaceOnMarker : MonoBehaviour
 {
     public MarkerBehaviour marker;
     public GameObject obj;
+
+    private bool active = false;
+    
     private void Start()
     {
         obj.SetActive(false);
 
-        marker.OnMarkerDetected.AddListener(delegate { obj.SetActive(true);});
-        marker.OnMarkerLost.AddListener(delegate { obj.SetActive(false); });
+        marker.OnMarkerDetected.AddListener(delegate { active = true;});
+        marker.OnMarkerLost.AddListener(delegate { active = false; });
     }
     private void Update()
     {
+        obj.SetActive(active);
         UpdatePose();
     }
 
