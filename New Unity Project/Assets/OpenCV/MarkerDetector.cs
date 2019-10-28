@@ -177,33 +177,44 @@ public class MarkerDetector : MonoBehaviour
 
     private void DetectMarkers()
     {
+        DateTime previous = DateTime.Now;
+        double lag = 0.0;
+        
+        const double frames = 60;
+        const double dt = 1/frames;
+
         while (true)
         {
-            //Debug.Log("updating thread....");
-
-            if (grayedImg.IsDisposed || !updateThread)
+            DateTime current = DateTime.Now;
+            double elapsed = current.Subtract(previous).TotalSeconds;
+            previous = current;
+            lag += elapsed;
+            while (lag >= dt)
             {
-                //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
-                //mono behaviour or we haven't updated the main thread yet!
+                //Debug.Log(elapsed);
 
-                // Debug.Log("grayed img was disposed");
-                continue;
+                if (grayedImg.IsDisposed || !updateThread)
+                {
+                    //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
+                    //mono behaviour or we haven't updated the main thread yet!
+
+                    // Debug.Log("grayed img was disposed");
+                    continue;
+                }
+
+
+                CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
+                    out rejectedImgPoints);
+
+                //if (ids == null) return;
+                //Debug.Log(ids.Length);
+                //CvAruco.DrawDetectedMarkers(img, corners, ids);
+
+                CheckIfLostMarkers();
+                CheckIfDetectedMarkers();
+
+                lag -= dt;
             }
-
-
-            CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
-                out rejectedImgPoints);
-
-            if (ids == null) return;
-            //Debug.Log(ids.Length);
-            //CvAruco.DrawDetectedMarkers(img, corners, ids);
-
-            CheckIfLostMarkers();
-            CheckIfDetectedMarkers();
-
-            //Debug.Log(ids.Length);
-
-            //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
         }
     }
 }
