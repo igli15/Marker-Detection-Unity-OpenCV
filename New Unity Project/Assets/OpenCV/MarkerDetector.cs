@@ -36,9 +36,13 @@ public class MarkerDetector : MonoBehaviour
     private int imgCols;
     private int imgRows;
 
+    bool updateThread = false;
+    
     protected void Start()
     {
         Init();
+        
+        DetectMarkerAsync();
     }
 
     private void OnEnable()
@@ -49,7 +53,7 @@ public class MarkerDetector : MonoBehaviour
     private void OnDisable()
     {
         webCamera.OnProcessTexture -= ProcessTexture;
-
+        updateThread = false;
         if (!img.IsDisposed) img.Release();
         if (!grayedImg.IsDisposed) grayedImg.Release();
     }
@@ -76,7 +80,8 @@ public class MarkerDetector : MonoBehaviour
         
         Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
         
-        DetectMarkerAsync();
+        updateThread = true;
+        //DetectMarkerAsync();
 
         output = ARucoUnityHelper.MatToTexture(img, output);
 
@@ -143,43 +148,57 @@ public class MarkerDetector : MonoBehaviour
 
     private void DetectMarkers()
     {
-        CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
-          out rejectedImgPoints);
-        
-        if(ids == null) return;
-        //Debug.Log(ids.Length);
-        //CvAruco.DrawDetectedMarkers(img, corners, ids);
-        
-        CheckIfLostMarkers(ids);
-        
-        //Debug.Log(ids.Length);
-
-        //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
-        if (ids.Length > 0 && OnMarkersDetected != null)
+        while (true)
         {
-            OnMarkersDetected.Invoke(ids);
-        }
-
-        for (int i = 0; i < ids.Length; i++)
-        {
-            Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
-
-            if (!MarkerManager.IsMarkerRegistered(ids[i]))
+            Debug.Log("updating thread....");
+            
+            if (grayedImg.IsDisposed || !updateThread)
             {
+                //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
+                //mono behaviour or we haven't updated the main thread yet!
+                
+                // Debug.Log("grayed img was disposed");
                 continue;
             }
+            
+            CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
+                out rejectedImgPoints);
 
-            MarkerBehaviour m = MarkerManager.GetMarker(ids[i]);
+            if (ids == null) return;
+            //Debug.Log(ids.Length);
+            //CvAruco.DrawDetectedMarkers(img, corners, ids);
 
-            if (!allDetectedMarkers.ContainsKey(ids[i]))
+            CheckIfLostMarkers(ids);
+
+            //Debug.Log(ids.Length);
+
+            //NOTE: sometimes it seems that there are markers detected even though they are not on screen?!
+            if (ids.Length > 0 && OnMarkersDetected != null)
             {
-                m.OnMarkerDetected.Invoke();
-                allDetectedMarkers.Add(m.GetMarkerID(), m);
+                OnMarkersDetected.Invoke(ids);
             }
 
-            // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-            m.UpdateMarker(imgCols, imgRows, corners[i], calibrationData.GetCameraMatrix(),
-                calibrationData.GetDistortionCoefficients(), grayedImg);
+            for (int i = 0; i < ids.Length; i++)
+            {
+                Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+
+                if (!MarkerManager.IsMarkerRegistered(ids[i]))
+                {
+                    continue;
+                }
+
+                MarkerBehaviour m = MarkerManager.GetMarker(ids[i]);
+
+                if (!allDetectedMarkers.ContainsKey(ids[i]))
+                {
+                    m.OnMarkerDetected.Invoke();
+                    allDetectedMarkers.Add(m.GetMarkerID(), m);
+                }
+
+                // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
+                m.UpdateMarker(imgCols, imgRows, corners[i], calibrationData.GetCameraMatrix(),
+                    calibrationData.GetDistortionCoefficients(), grayedImg);
+            }
         }
     }
 }
