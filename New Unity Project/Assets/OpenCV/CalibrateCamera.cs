@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using ThreadPriority = System.Threading.ThreadPriority;
 
 public class CalibrateCamera : MonoBehaviour
 {
@@ -82,6 +83,7 @@ public class CalibrateCamera : MonoBehaviour
             //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
             calibrationThread = new Thread(Calibrate);
             calibrationThread.Start();
+            calibrationThread.Priority = ThreadPriority.Highest;
         }
     }
 

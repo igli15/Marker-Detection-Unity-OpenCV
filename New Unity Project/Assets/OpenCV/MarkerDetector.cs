@@ -5,6 +5,7 @@ using UnityEngine;
 using OpenCvSharp.Aruco;
 using System;
 using System.Threading;
+using ThreadPriority = System.Threading.ThreadPriority;
 
 public class MarkerDetector : MonoBehaviour
 {
@@ -43,6 +44,7 @@ public class MarkerDetector : MonoBehaviour
         Init();
 
         DetectMarkerAsync();
+        detectMarkersThread.Priority = ThreadPriority.Highest;
     }
 
     private void OnEnable()
@@ -72,6 +74,12 @@ public class MarkerDetector : MonoBehaviour
     private bool ProcessTexture(WebCamTexture input, ref Texture2D output,
         ARucoUnityHelper.TextureConversionParams textureParameters)
     {
+        if (ids != null)
+        {
+            CheckIfLostMarkers();
+            CheckIfDetectedMarkers();
+        }
+
         img = ARucoUnityHelper.TextureToMat(input, textureParameters);
 
         imgRows = img.Rows;
@@ -177,44 +185,28 @@ public class MarkerDetector : MonoBehaviour
 
     private void DetectMarkers()
     {
-        DateTime previous = DateTime.Now;
-        double lag = 0.0;
-        
-        const double frames = 60;
-        const double dt = 1/frames;
-
+        //Debug.Log(elapsed);
         while (true)
         {
-            DateTime current = DateTime.Now;
-            double elapsed = current.Subtract(previous).TotalSeconds;
-            previous = current;
-            lag += elapsed;
-            while (lag >= dt)
+            if (grayedImg.IsDisposed || !updateThread)
             {
-                //Debug.Log(elapsed);
+                //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
+                //mono behaviour or we haven't updated the main thread yet!
 
-                if (grayedImg.IsDisposed || !updateThread)
-                {
-                    //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
-                    //mono behaviour or we haven't updated the main thread yet!
-
-                    // Debug.Log("grayed img was disposed");
-                    continue;
-                }
-
-
-                CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
-                    out rejectedImgPoints);
-
-                //if (ids == null) return;
-                //Debug.Log(ids.Length);
-                //CvAruco.DrawDetectedMarkers(img, corners, ids);
-
-                CheckIfLostMarkers();
-                CheckIfDetectedMarkers();
-
-                lag -= dt;
+                // Debug.Log("grayed img was disposed");
+                continue;
             }
+
+
+            CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
+                out rejectedImgPoints);
+
+            //if (ids == null) return;
+            //Debug.Log(ids.Length);
+            //CvAruco.DrawDetectedMarkers(img, corners, ids);
+
+            //CheckIfLostMarkers();
+            //CheckIfDetectedMarkers();
         }
     }
 }
