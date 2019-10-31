@@ -174,9 +174,10 @@ public class WebCamera : MonoBehaviour
         Rect rect = new Rect(0, 40, w, h * 2 / 100);
         style.alignment = TextAnchor.UpperLeft;
         style.fontSize = h * 2 / 100;
-        style.normal.textColor = new Color (0.0f, 0.0f, 0.5f, 1.0f);
+        style.normal.textColor = new Color (0.0f, 1, 1, 1.0f);
 
-        string text = "Texture Update Rate: " + maxCallCount.ToString() + "\n" + "Texture Requested FPS: " + webCamSettings.TextureFPS.ToString() ;
+        string text = "Texture Update Rate: " + maxCallCount.ToString() + "\n" + "Texture Requested FPS: " + webCamSettings.TextureFPS.ToString() 
+            +"\n" + "WebCamTexture Dimensions: " + webCamTexture.width.ToString() + "x" + webCamTexture.height.ToString();
         GUI.Label(rect, text, style);
         
     }
