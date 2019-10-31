@@ -18,6 +18,7 @@ public class MarkerDetector : MonoBehaviour
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
+    public bool debugMode = false;
 
     public CalibrationData calibrationData;
     private DetectorParameters detectorParameters;
@@ -94,11 +95,18 @@ public class MarkerDetector : MonoBehaviour
             ids = idsCache;
         }
         
+        //Only draw the markers on debug mode and if on debug dont throw events so we can see the drawn markers.
         if (ids != null)
         {
-            //CvAruco.DrawDetectedMarkers(img,corners,ids);
-            CheckIfLostMarkers();
-            CheckIfDetectedMarkers();
+            if (debugMode)
+            {
+                CvAruco.DrawDetectedMarkers(img,corners,ids);
+            }
+            else
+            {
+                CheckIfLostMarkers();
+                CheckIfDetectedMarkers();
+            }
         }
 
         output = ARucoUnityHelper.MatToTexture(img, output);
