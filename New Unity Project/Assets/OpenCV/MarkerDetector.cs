@@ -101,6 +101,13 @@ public class MarkerDetector : MonoBehaviour
             if (debugMode)
             {
                 CvAruco.DrawDetectedMarkers(img,corners,ids);
+                
+                //lose all markers
+                foreach (MarkerBehaviour lostMarker in allDetectedMarkers.Values)
+                {
+                    lostMarker.OnMarkerLost.Invoke();
+                }
+                allDetectedMarkers.Clear();
             }
             else
             {
@@ -219,13 +226,12 @@ public class MarkerDetector : MonoBehaviour
 
             CvAruco.DetectMarkers(grayedImg, dictionary, out cornersCache, out idsCache, detectorParameters,
                 out rejectedImgPoints);
-
-            //if (ids == null) return;
-            //Debug.Log(ids.Length);
-            //CvAruco.DrawDetectedMarkers(img, corners, ids);
-
-            //CheckIfLostMarkers();
-            //CheckIfDetectedMarkers();
+            
         }
+    }
+
+    public void ToggleDebugMode()
+    {
+        debugMode = !debugMode;
     }
 }
