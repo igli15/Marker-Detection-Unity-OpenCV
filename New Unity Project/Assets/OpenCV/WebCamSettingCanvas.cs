@@ -11,6 +11,8 @@ public class WebCamSettingCanvas : MonoBehaviour
     public InputField widthInputField;
     public InputField heightInputField;
 
+    public WebCameraSettings WebCameraSettings;
+    
     private float deltaTime = 0.0f;
     
     private void Awake()
@@ -37,11 +39,14 @@ public class WebCamSettingCanvas : MonoBehaviour
         if (int.TryParse(widthInputField.text,out width) && int.TryParse(heightInputField.text,out height))
         {
             webCam.AssignNewCameraTextureResolution(width, height,true);
+            WebCameraSettings.requestedWidth = width;
+            WebCameraSettings.requestedHeight = height;
         }
         else
         {
             Debug.LogWarning("You have NOT passed a int to the width or height input fields!");
         }
+        
     }
     
     void OnGUI()
