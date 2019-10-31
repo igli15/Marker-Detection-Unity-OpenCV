@@ -155,7 +155,11 @@ public class CalibrateCamera : MonoBehaviour
     {
         objPoints.Clear();
         imagePoints.Clear();
+        corners.Clear();
+        obj.Clear();
 
+        calibrationThread.Abort();
+        calibrationThread = null;
         if (CalibrateCamera.OnCalibrationReset != null) CalibrateCamera.OnCalibrationReset();
 
         Debug.Log("Reseting....");

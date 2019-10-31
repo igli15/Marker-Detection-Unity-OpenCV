@@ -43,11 +43,20 @@ public class UpdateCalibrtionInfo : MonoBehaviour
 
         calibratedText.text = calibratedString;
         projectionErrorText.text = projectionErrorString;
+
+        if (finishedCalibration)
+        {
+            calibratedText.color = Color.green;
+            projectionErrorText.color = Color.green;
+        }
     }
 
     private void OnCalibrationFinished(CalibrationData data)
     {
         finishedCalibration = true;
+        //calibratedText.color = Color.green;
+        //projectionErrorText.color = Color.green;
+        
         calibratedString = "Calibrated: True";
         projectionErrorString = "ProjectionError: " + data.projectionError;
     }
@@ -59,6 +68,9 @@ public class UpdateCalibrtionInfo : MonoBehaviour
 
     private void OnCalibrationReset()
     {
+        calibratedText.color = Color.red;
+        projectionErrorText.color = Color.red;
+        
         startedCalibration = false;
         finishedCalibration = false;
         calibratedString = "Calibrated: false";
