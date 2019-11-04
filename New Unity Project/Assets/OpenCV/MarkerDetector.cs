@@ -1,11 +1,9 @@
 ﻿using OpenCvSharp;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using OpenCvSharp.Aruco;
 using System;
+using System.Collections.Generic;
 using System.Threading;
-using ThreadPriority = System.Threading.ThreadPriority;
+using UnityEngine;
 
 public class MarkerDetector : MonoBehaviour
 {
@@ -46,6 +44,7 @@ public class MarkerDetector : MonoBehaviour
     bool updateThread = false;
 
     private int threadCounter = 0;
+    private bool outputImage = false;
 
     private Semaphore threadSemaphore = new Semaphore(1, 1);
 
@@ -142,20 +141,24 @@ public class MarkerDetector : MonoBehaviour
             //threadSemaphore.Release();
         }
 */
-        Interlocked.Increment(ref threadCounter);
 
         if (threadCounter == 0)
         {
-            if (img != null)
-            {
-                output = ARucoUnityHelper.MatToTexture(img, output);
-                imgBuffer.CopyTo(img);
-                return true;
-                //img.Release();
-            }
+            imgBuffer.CopyTo(img);
+            Interlocked.Increment(ref threadCounter);
+          
         }
-
-        output = ARucoUnityHelper.MatToTexture(imgBuffer, output);
+       
+        if(outputImage)
+        {
+            output = ARucoUnityHelper.MatToTexture(img, output);
+            outputImage = false;
+        }
+        else
+        {
+            output = ARucoUnityHelper.MatToTexture(imgBuffer, output);
+        }
+        
         imgBuffer.Release();
         return true;
     }
@@ -270,6 +273,7 @@ public class MarkerDetector : MonoBehaviour
                 CvAruco.DetectMarkers(grayedImg, dictionary, out cornersCache, out idsCache, detectorParameters,
                     out rejectedImgPoints);
                 //threadSemaphore.Release();
+                outputImage = true;
                 Interlocked.Exchange(ref threadCounter, 0);
             }
         }
