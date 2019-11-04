@@ -37,6 +37,7 @@ public class MarkerDetector : MonoBehaviour
     private Point2f[][] rejectedImgPoints;
 
     private Thread detectMarkersThread;
+    private Thread grayscaleImageThread;
 
     private int imgCols;
     private int imgRows;
@@ -88,6 +89,12 @@ public class MarkerDetector : MonoBehaviour
 
         imgRows = imgBuffer.Rows;
         imgCols = imgBuffer.Cols;
+        
+        if (threadCounter == 0)
+        {
+            imgBuffer.CopyTo(img);
+            Interlocked.Increment(ref threadCounter);
+        }
 
         // Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
@@ -142,13 +149,6 @@ public class MarkerDetector : MonoBehaviour
         }
 */
 
-        if (threadCounter == 0)
-        {
-            imgBuffer.CopyTo(img);
-            Interlocked.Increment(ref threadCounter);
-          
-        }
-       
         if(outputImage)
         {
             output = ARucoUnityHelper.MatToTexture(img, output);
@@ -170,6 +170,12 @@ public class MarkerDetector : MonoBehaviour
         {
             detectMarkersThread = new Thread(DetectMarkers);
             detectMarkersThread.Start();
+        }
+        
+        if (grayscaleImageThread == null || !grayscaleImageThread.IsAlive)
+        {
+            grayscaleImageThread = new Thread(GrayScaleImage);
+            grayscaleImageThread.Start();
         }
     }
 
@@ -266,9 +272,9 @@ public class MarkerDetector : MonoBehaviour
 
             //threadSemaphore.WaitOne();
 
-            if (threadCounter > 0)
+            if (threadCounter > 1)
             {
-                Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
+                //Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
                 CvAruco.DetectMarkers(grayedImg, dictionary, out cornersCache, out idsCache, detectorParameters,
                     out rejectedImgPoints);
@@ -285,9 +291,11 @@ public class MarkerDetector : MonoBehaviour
         {
             if (!updateThread) continue;
 
-            threadSemaphore.WaitOne();
-            Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
-            threadSemaphore.Release();
+            if (threadCounter == 1)
+            {
+                Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
+                Interlocked.Exchange(ref threadCounter, 2);
+            }
         }
     }
 
