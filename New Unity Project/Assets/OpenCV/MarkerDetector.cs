@@ -17,7 +17,8 @@ public class MarkerDetector : MonoBehaviour
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
-    public bool debugMode = false;
+    public bool throwMarkerCallbacks = true;
+    public bool drawMarkerOutlines = false;
 
     public CalibrationData calibrationData;
     private DetectorParameters detectorParameters;
@@ -102,6 +103,11 @@ public class MarkerDetector : MonoBehaviour
       
         if(outputImage)
         {
+            if (drawMarkerOutlines)
+            {
+                CvAruco.DrawDetectedMarkers(img, corners, ids);
+            }
+            
             output = ARucoUnityHelper.MatToTexture(img, output);
             //Debug.Log("Marker image Rendered");
             outputImage = false;
@@ -227,12 +233,13 @@ public class MarkerDetector : MonoBehaviour
             {
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                     out rejectedImgPoints);
-                
+
+                if (throwMarkerCallbacks)
+                {
+                    CheckIfLostMarkers();
+                    CheckIfDetectedMarkers();
+                }
                 outputImage = true;
-                
-                CheckIfLostMarkers();
-                CheckIfDetectedMarkers();
-                
                 Interlocked.Exchange(ref threadCounter, 0);
             }
         }
@@ -254,6 +261,18 @@ public class MarkerDetector : MonoBehaviour
     
     public void ToggleDebugMode()
     {
-        debugMode = !debugMode;
+        if (ids != null)
+        {
+            foreach (MarkerBehaviour lostMarker in allDetectedMarkers.Values)
+            {
+                lostMarker.OnMarkerLost.Invoke();
+            }
+
+            allDetectedMarkers.Clear();
+        }
+        
+        throwMarkerCallbacks = !throwMarkerCallbacks;
+        drawMarkerOutlines = !drawMarkerOutlines;
+        
     }
 }

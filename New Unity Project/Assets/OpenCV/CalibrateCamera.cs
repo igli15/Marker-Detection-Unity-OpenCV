@@ -261,7 +261,7 @@ public class CalibrateCamera : MonoBehaviour
 
     protected void OnDisable()
     {
-        calibrationThread.Abort();
+        if(calibrationThread != null) calibrationThread.Abort();
         
         if (mat != null && !mat.IsDisposed) mat.Release();
 
