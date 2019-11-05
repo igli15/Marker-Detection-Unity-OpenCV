@@ -12,8 +12,8 @@ public class PlaceOnMarker : MonoBehaviour
     private void Start()
     {
         obj.SetActive(false);
-
-        marker.OnMarkerDetected.AddListener(delegate { active = true;});
+    
+        marker.OnMarkerDetected.AddListener(delegate {active = true;});
         marker.OnMarkerLost.AddListener(delegate { active = false; });
     }
     private void Update()
