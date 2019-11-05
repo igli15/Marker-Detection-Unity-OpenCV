@@ -1,10 +1,9 @@
 ﻿using OpenCvSharp;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using OpenCvSharp.Aruco;
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using UnityEngine;
 using ThreadPriority = System.Threading.ThreadPriority;
 
 public class MarkerDetector : MonoBehaviour
@@ -18,38 +17,45 @@ public class MarkerDetector : MonoBehaviour
     public Camera cam;
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
-    public bool debugMode = false;
+    public bool throwMarkerCallbacks = true;
+    public bool drawMarkerOutlines = false;
 
     public CalibrationData calibrationData;
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
-    private Mat img;
+    private Mat img = new Mat();
+    private Mat imgBuffer;
 
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
 
     private Point2f[][] corners;
     private int[] ids;
-    
+
     private Point2f[][] cornersCache;
     private int[] idsCache;
-    
+
     private Point2f[][] rejectedImgPoints;
 
     private Thread detectMarkersThread;
-
-    private int imgCols;
-    private int imgRows;
-
+    private Thread grayscaleImageThread;
+    
     bool updateThread = false;
+
+    private int threadCounter = 0;
+    private bool outputImage = false;
+
+    private Semaphore threadSemaphore = new Semaphore(1, 1);
 
     protected void Start()
     {
         Init();
 
         DetectMarkerAsync();
+        //grayscaleImageThread.Priority = ThreadPriority.Highest;
         //detectMarkersThread.Priority = ThreadPriority.Highest;
+
     }
 
     private void OnEnable()
@@ -61,7 +67,12 @@ public class MarkerDetector : MonoBehaviour
     {
         webCamera.OnProcessTexture -= ProcessTexture;
         updateThread = false;
+        
+        grayscaleImageThread.Abort();
+        detectMarkersThread.Abort();
+
         if (!img.IsDisposed) img.Release();
+        if (!imgBuffer.IsDisposed) imgBuffer.Release();
         if (!grayedImg.IsDisposed) grayedImg.Release();
     }
 
@@ -79,46 +90,35 @@ public class MarkerDetector : MonoBehaviour
     private bool ProcessTexture(WebCamTexture input, ref Texture2D output,
         ARucoUnityHelper.TextureConversionParams textureParameters)
     {
-        img = ARucoUnityHelper.TextureToMat(input, textureParameters);
-
-        imgRows = img.Rows;
-        imgCols = img.Cols;
-
-        Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
+        imgBuffer = ARucoUnityHelper.TextureToMat(input, textureParameters);
+        //Debug.Log("New image Assigned");
+        
+        if (threadCounter == 0)
+        {
+            imgBuffer.CopyTo(img);
+            Interlocked.Increment(ref threadCounter);
+        }
 
         updateThread = true;
-        //DetectMarkerAsync();
-        
-        if (idsCache != null)
+      
+        if(outputImage)
         {
-            corners = cornersCache;
-            ids = idsCache;
+            if (drawMarkerOutlines)
+            {
+                CvAruco.DrawDetectedMarkers(img, corners, ids);
+            }
+            
+            output = ARucoUnityHelper.MatToTexture(img, output);
+            //Debug.Log("Marker image Rendered");
+            outputImage = false;
+        }
+        else
+        {
+            output = ARucoUnityHelper.MatToTexture(imgBuffer, output);
+            //Debug.Log("Camera image Rendered");
         }
         
-        //Only draw the markers on debug mode and if on debug dont throw events so we can see the drawn markers.
-        if (ids != null)
-        {
-            if (debugMode)
-            {
-                CvAruco.DrawDetectedMarkers(img,corners,ids);
-                
-                //lose all markers
-                foreach (MarkerBehaviour lostMarker in allDetectedMarkers.Values)
-                {
-                    lostMarker.OnMarkerLost.Invoke();
-                }
-                allDetectedMarkers.Clear();
-            }
-            else
-            {
-                CheckIfLostMarkers();
-                CheckIfDetectedMarkers();
-            }
-        }
-
-        output = ARucoUnityHelper.MatToTexture(img, output);
-
-        img.Release();
+        imgBuffer.Release();
         return true;
     }
 
@@ -129,6 +129,12 @@ public class MarkerDetector : MonoBehaviour
         {
             detectMarkersThread = new Thread(DetectMarkers);
             detectMarkersThread.Start();
+        }
+        
+        if (grayscaleImageThread == null || !grayscaleImageThread.IsAlive)
+        {
+            grayscaleImageThread = new Thread(GrayScaleImage);
+            grayscaleImageThread.Start();
         }
     }
 
@@ -188,7 +194,7 @@ public class MarkerDetector : MonoBehaviour
 
         for (int i = 0; i < ids.Length; i++)
         {
-            Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
+            //Cv2.CornerSubPix(grayedImg, corners[i], new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
 
             if (!MarkerManager.IsMarkerRegistered(ids[i]))
             {
@@ -204,7 +210,7 @@ public class MarkerDetector : MonoBehaviour
             }
 
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
-            m.UpdateMarker(imgCols, imgRows, corners[i], calibrationData.GetCameraMatrix(),
+            m.UpdateMarker(img.Rows, img.Cols, corners[i], calibrationData.GetCameraMatrix(),
                 calibrationData.GetDistortionCoefficients(), grayedImg);
         }
     }
@@ -214,7 +220,7 @@ public class MarkerDetector : MonoBehaviour
         //Debug.Log(elapsed);
         while (true)
         {
-            if (grayedImg.IsDisposed || !updateThread)
+            if (!updateThread)
             {
                 //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
                 //mono behaviour or we haven't updated the main thread yet!
@@ -223,15 +229,50 @@ public class MarkerDetector : MonoBehaviour
                 continue;
             }
 
+            if (threadCounter == 2)
+            {
+                CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
+                    out rejectedImgPoints);
 
-            CvAruco.DetectMarkers(grayedImg, dictionary, out cornersCache, out idsCache, detectorParameters,
-                out rejectedImgPoints);
-            
+                if (throwMarkerCallbacks)
+                {
+                    CheckIfLostMarkers();
+                    CheckIfDetectedMarkers();
+                }
+                outputImage = true;
+                Interlocked.Exchange(ref threadCounter, 0);
+            }
         }
     }
 
+    private void GrayScaleImage()
+    {
+        while (true)
+        {
+            if (!updateThread) continue;
+
+            if (threadCounter == 1)
+            {
+                Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
+                Interlocked.Increment(ref threadCounter);
+            }
+        }
+    }
+    
     public void ToggleDebugMode()
     {
-        debugMode = !debugMode;
+        if (ids != null)
+        {
+            foreach (MarkerBehaviour lostMarker in allDetectedMarkers.Values)
+            {
+                lostMarker.OnMarkerLost.Invoke();
+            }
+
+            allDetectedMarkers.Clear();
+        }
+        
+        throwMarkerCallbacks = !throwMarkerCallbacks;
+        drawMarkerOutlines = !drawMarkerOutlines;
+        
     }
 }
