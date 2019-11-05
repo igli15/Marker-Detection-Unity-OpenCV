@@ -50,6 +50,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
     private int threadCounter = 0;
     private bool outputImage = false;
+    
+    ARucoUnityHelper.TextureConversionParams texParam;
 
     // Start is called before the first frame update
     void Start()
@@ -59,6 +61,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         DetectMarkerAsync();
 
         cameraManager.frameReceived += OnCameraFrameReceived;
+
+        //cameraManager.subsystem.currentConfiguration = config;
     }
     
     void Init()
@@ -69,6 +73,9 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         //detectorParameters.CornerRefinementMinAccuracy = 0.01f;
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
+        
+        texParam = new ARucoUnityHelper.TextureConversionParams();
+        texParam.FlipVertically = true;
     }
     
     private void DetectMarkerAsync()
@@ -133,10 +140,6 @@ public class ARFoundationMarkerDetector : MonoBehaviour
             transformation = CameraImageTransformation.MirrorY
         };
 
-        
-        Debug.Log(conversionParams.outputDimensions.x);
-        Debug.Log(conversionParams.outputDimensions.y);
-        
         // See how many bytes we need to store the final image.
         int size = image.GetConvertedDataSize(conversionParams);
 
@@ -166,8 +169,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         texture.LoadRawTextureData(buffer);
         texture.Apply();
         
-        imgBuffer = ARucoUnityHelper.TextureToMat(texture);
-
+        imgBuffer = ARucoUnityHelper.TextureToMat(texture,texParam);
+        
         if (threadCounter == 0)
         {
             imgBuffer.CopyTo(img);
