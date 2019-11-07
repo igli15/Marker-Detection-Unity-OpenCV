@@ -30,7 +30,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
-    
+
     //private Mat notRotated = new Mat();
     private Mat img = new Mat();
     private Mat imgBuffer;
@@ -54,6 +54,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     private bool outputImage = false;
 
     ARucoUnityHelper.TextureConversionParams texParam;
+    private XRCameraIntrinsics cameraIntrinsics;
 
     // Start is called before the first frame update
     void Start()
@@ -63,10 +64,10 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         DetectMarkerAsync();
 
         cameraManager.frameReceived += OnCameraFrameReceived;
-        
+
         //cameraManager.subsystem.currentConfiguration = config;
     }
-    
+
     void Init()
     {
         detectorParameters = DetectorParameters.Create();
@@ -75,10 +76,10 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         //detectorParameters.CornerRefinementMinAccuracy = 0.01f;
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
-        
+
         texParam = new ARucoUnityHelper.TextureConversionParams();
     }
-    
+
     private void DetectMarkerAsync()
     {
         if (detectMarkersThread == null || !detectMarkersThread.IsAlive)
@@ -87,7 +88,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
             detectMarkersThread.Start();
         }
     }
-    
+
     private void DetectMarkers()
     {
         //Debug.Log(elapsed);
@@ -106,7 +107,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
             {
                 //Debug.Log("Detecting Markers");
                 Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
-                
+
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                     out rejectedImgPoints);
 
@@ -115,12 +116,13 @@ public class ARFoundationMarkerDetector : MonoBehaviour
                     CheckIfLostMarkers();
                     CheckIfDetectedMarkers();
                 }
+
                 outputImage = true;
                 Interlocked.Exchange(ref threadCounter, 0);
             }
         }
     }
-    
+
     unsafe void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         XRCameraImage image;
@@ -128,15 +130,16 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         {
             return;
         }
+
         var format = TextureFormat.RGBA32;
 
         if (texture == null || texture.width != image.width || texture.height != image.height)
         {
             texture = new Texture2D(image.width, image.height, format, false);
         }
-        
+
         var conversionParams = new XRCameraImageConversionParams(image, format, CameraImageTransformation.MirrorY);
-        
+
         var rawTextureData = texture.GetRawTextureData<byte>();
         try
         {
@@ -148,24 +151,24 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         }
 
         texture.Apply();
-        
+
         texParam.FlipHorizontally = false;
-        
-        imgBuffer = ARucoUnityHelper.TextureToMat(texture,texParam);
+
+        imgBuffer = ARucoUnityHelper.TextureToMat(texture, texParam);
 
         //rotate(ref notRotated,ref imgBuffer, 90);
-        
+
         if (threadCounter == 0)
         {
             imgBuffer.CopyTo(img);
             Interlocked.Increment(ref threadCounter);
         }
-        
+
         updateThread = true;
 
         imgBuffer.Release();
     }
-    
+
     private void CheckIfLostMarkers()
     {
         if (ids.Length == 0)
@@ -238,12 +241,30 @@ public class ARFoundationMarkerDetector : MonoBehaviour
                 allDetectedMarkers.Add(m.GetMarkerID(), m);
             }
 
+            cameraManager.TryGetIntrinsics(out cameraIntrinsics);
+
+            float rotZ = 0;
+            switch (Screen.orientation) {
+                case ScreenOrientation.Portrait:
+                    rotZ = 90;
+                    break;
+                case ScreenOrientation.LandscapeLeft:
+                    rotZ = 180;
+                    break;
+                case ScreenOrientation.LandscapeRight:
+                    rotZ = 0;
+                    break;
+                case ScreenOrientation.PortraitUpsideDown:
+                    rotZ = -90;
+                    break;
+            }
+
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
             m.UpdateMarker(img.Rows, img.Cols, corners[i], calibrationData.GetCameraMatrix(),
-                calibrationData.GetDistortionCoefficients(), grayedImg,Vector3.forward * 90); 
+                calibrationData.GetDistortionCoefficients(), cameraIntrinsics, grayedImg, Vector3.forward * rotZ);
         }
     }
-    
+
     public void ToggleDebugMode()
     {
         if (ids != null)
@@ -255,9 +276,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
             allDetectedMarkers.Clear();
         }
-        
+
         throwMarkerCallbacks = !throwMarkerCallbacks;
         drawMarkerOutlines = !drawMarkerOutlines;
-        
     }
 }

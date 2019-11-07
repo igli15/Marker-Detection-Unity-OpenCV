@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.XR.ARSubsystems;
 
 public class MarkerBehaviour : MonoBehaviour
 {
@@ -32,7 +33,7 @@ public class MarkerBehaviour : MonoBehaviour
     private MarkerPose currentMarkerPose;
 
     private Matrix4x4 currentTransformationMatrix;
-    
+
     private void Awake()
     {
         MarkerManager.RegisterMarker(this);
@@ -45,6 +46,16 @@ public class MarkerBehaviour : MonoBehaviour
 
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
         UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth, renderTexHeight, k, d, grayMat),
+            additionalRotation);
+    }
+
+    public void UpdateMarker(float renderTexWidth, float renderTexHeight, Point2f[] corners, double[,] k, double[] d,
+        XRCameraIntrinsics cameraIntrinsics, Mat grayMat = null, Nullable<Vector3> additionalRotation = null)
+    {
+        currentMarkerData.corners = corners;
+
+        //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
+        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth, renderTexHeight, k, d,cameraIntrinsics ,grayMat),
             additionalRotation);
     }
 
@@ -157,6 +168,59 @@ public class MarkerBehaviour : MonoBehaviour
         }
 
         Cv2.SolvePnP(markerPoints, currentMarkerData.corners, k, d, out rvec, out tvec, false, SolvePnPFlags.Iterative);
+
+        Cv2.Rodrigues(rvec, out rotMatrix);
+
+
+        Matrix4x4 matrix = new Matrix4x4();
+
+
+        matrix.SetRow(0,
+            new Vector4((float) rotMatrix[0, 0], (float) rotMatrix[0, 1], (float) rotMatrix[0, 2], (float) tvec[0]));
+        matrix.SetRow(1,
+            new Vector4((float) rotMatrix[1, 0], (float) rotMatrix[1, 1], (float) rotMatrix[1, 2], (float) tvec[1]));
+        matrix.SetRow(2,
+            new Vector4((float) rotMatrix[2, 0], (float) rotMatrix[2, 1], (float) rotMatrix[2, 2], (float) tvec[2]));
+        matrix.SetRow(3, new Vector4(0f, 0f, 0f, 1f));
+        return matrix;
+    }
+    
+    private Matrix4x4 CreateTransformationMatrix(float width, float height, double[,] k, double[] d, XRCameraIntrinsics cameraIntrinsics,Mat grayMat = null)
+    {
+        if (currentMarkerData.corners.Length == 0)
+        {
+            Debug.LogError("Marker Is Not Updated");
+        }
+
+        float markerSizeInMeters = sizeInMeters;
+
+        Point3f[] markerPoints = new Point3f[]
+        {
+            new Point3f(-markerSizeInMeters / 2f, markerSizeInMeters / 2f, 0f),
+            new Point3f(markerSizeInMeters / 2f, markerSizeInMeters / 2f, 0f),
+            new Point3f(markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f),
+            new Point3f(-markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f)
+        };
+        
+        double[,] rawCameraMatrix = new double[3, 3]
+        {
+            {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.x},
+            {0d, cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.y},
+            {0d, 0d, 1d}
+        };
+
+        double[] rvec = new double[3] {0d, 0d, 0d};
+        double[] tvec = new double[3] {0d, 0d, 0d};
+
+        double[,] rotMatrix = new double[3, 3] {{0d, 0d, 0d}, {0d, 0d, 0d}, {0d, 0d, 0d}};
+
+        if (grayMat != null)
+        {
+            Cv2.CornerSubPix(grayMat, currentMarkerData.corners, new Size(5, 5), new Size(-1, -1),
+                TermCriteria.Both(30, 0.001));
+        }
+
+        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, rawCameraMatrix, new double[5] {0,0,0,0,0}, out rvec, out tvec, false, SolvePnPFlags.Iterative);
 
         Cv2.Rodrigues(rvec, out rotMatrix);
 
