@@ -30,8 +30,11 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
+    
+    //private Mat notRotated = new Mat();
+    private Mat notRotatedImg;
     private Mat img = new Mat();
-    private Mat imgBuffer;
+    private Mat imgBuffer = new Mat();
 
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
@@ -50,6 +53,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
     private int threadCounter = 0;
     private bool outputImage = false;
+
+    public RawImage dispayImage;
     
     ARucoUnityHelper.TextureConversionParams texParam;
 
@@ -61,7 +66,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         DetectMarkerAsync();
 
         cameraManager.frameReceived += OnCameraFrameReceived;
-
+        
         //cameraManager.subsystem.currentConfiguration = config;
     }
     
@@ -75,7 +80,6 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
         
         texParam = new ARucoUnityHelper.TextureConversionParams();
-        texParam.FlipVertically = true;
     }
     
     private void DetectMarkerAsync()
@@ -101,8 +105,9 @@ public class ARFoundationMarkerDetector : MonoBehaviour
                 continue;
             }
 
-            if (threadCounter == 1)
+            if (threadCounter > 0)
             {
+                //Debug.Log("Detecting Markers");
                 Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
                 
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
@@ -118,58 +123,42 @@ public class ARFoundationMarkerDetector : MonoBehaviour
             }
         }
     }
-
-    // Update is called once per frame
+    
     unsafe void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         XRCameraImage image;
         if (!cameraManager.TryGetLatestImage(out image))
+        {
             return;
+        }
+        var format = TextureFormat.RGBA32;
 
-        var conversionParams = new XRCameraImageConversionParams
+        if (texture == null || texture.width != image.width || texture.height != image.height)
         {
-            // Get the entire image
-            inputRect = new RectInt(0, 0, image.width, image.height),
-
-            // Downsample by 2
-            outputDimensions = new Vector2Int(image.width , image.height ),
-
-            // Choose RGBA format
-            outputFormat = TextureFormat.RGBA32,
-
-            transformation = CameraImageTransformation.MirrorY
-        };
-
-        // See how many bytes we need to store the final image.
-        int size = image.GetConvertedDataSize(conversionParams);
-
-        // Allocate a buffer to store the image
-        var buffer = new NativeArray<byte>(size, Allocator.Temp);
-
-        // Extract the image data
-        image.Convert(conversionParams, new IntPtr(buffer.GetUnsafePtr()), buffer.Length);
-
-        // The image was converted to RGBA32 format and written into the provided buffer
-        // so we can dispose of the CameraImage. We must do this or it will leak resources.
-        image.Dispose();
-
-        // At this point, we could process the image, pass it to a computer vision algorithm, etc.
-        // In this example, we'll just apply it to a texture to visualize it.
-
-        if (texture == null)
+            texture = new Texture2D(image.width, image.height, format, false);
+        }
+        
+        var conversionParams = new XRCameraImageConversionParams(image, format, CameraImageTransformation.MirrorY);
+        
+        var rawTextureData = texture.GetRawTextureData<byte>();
+        try
         {
-            // We've got the data; let's put it into a texture so we can visualize it.
-            texture = new Texture2D(
-                conversionParams.outputDimensions.x,
-                conversionParams.outputDimensions.y,
-                conversionParams.outputFormat,
-                false);
+            image.Convert(conversionParams, new IntPtr(rawTextureData.GetUnsafePtr()), rawTextureData.Length);
+        }
+        finally
+        {
+            image.Dispose();
         }
 
-        texture.LoadRawTextureData(buffer);
         texture.Apply();
         
-        imgBuffer = ARucoUnityHelper.TextureToMat(texture,texParam);
+        texParam.FlipHorizontally = false;
+        
+        notRotatedImg = ARucoUnityHelper.TextureToMat(texture,texParam);
+        
+        rotate(ref notRotatedImg,ref imgBuffer,90);
+
+        //rotate(ref notRotated,ref imgBuffer, 90);
         
         if (threadCounter == 0)
         {
@@ -179,12 +168,11 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         
         updateThread = true;
 
-        //dispayImage.texture = texture;
-
-        // Done with our temporary data
-        buffer.Dispose();
-        imgBuffer.Release();
-        //Resources.UnloadUnusedAssets();
+        dispayImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
+        
+        //imgBuffer.Release();
+        if(!notRotatedImg.IsDisposed ) notRotatedImg.Release();
+        
     }
     
     private void CheckIfLostMarkers()
@@ -254,6 +242,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
             if (!allDetectedMarkers.ContainsKey(ids[i]))
             {
+                Debug.Log("FOUND MARKER: " + m.GetMarkerID());
                 m.OnMarkerDetected.Invoke();
                 allDetectedMarkers.Add(m.GetMarkerID(), m);
             }
@@ -279,5 +268,13 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         throwMarkerCallbacks = !throwMarkerCallbacks;
         drawMarkerOutlines = !drawMarkerOutlines;
         
+    }
+    
+    void rotate(ref Mat src,ref Mat dst, double angle)
+    {
+        Point2f p = new Point2f(src.Cols/2f, src.Rows/2f);  
+        Mat r = Cv2.GetRotationMatrix2D(p, angle, 1.0);
+        Cv2.WarpAffine(src, dst, r, new Size(src.Cols, src.Rows));
+        r.Dispose();
     }
 }
