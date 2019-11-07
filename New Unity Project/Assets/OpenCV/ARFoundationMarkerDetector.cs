@@ -32,9 +32,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     private Mat grayedImg = new Mat();
     
     //private Mat notRotated = new Mat();
-    private Mat notRotatedImg;
     private Mat img = new Mat();
-    private Mat imgBuffer = new Mat();
+    private Mat imgBuffer;
 
     private Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
     private List<int> lostIds = new List<int>();
@@ -54,8 +53,6 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     private int threadCounter = 0;
     private bool outputImage = false;
 
-    public RawImage dispayImage;
-    
     ARucoUnityHelper.TextureConversionParams texParam;
 
     // Start is called before the first frame update
@@ -154,9 +151,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         
         texParam.FlipHorizontally = false;
         
-        notRotatedImg = ARucoUnityHelper.TextureToMat(texture,texParam);
-        
-        rotate(ref notRotatedImg,ref imgBuffer,90);
+        imgBuffer = ARucoUnityHelper.TextureToMat(texture,texParam);
 
         //rotate(ref notRotated,ref imgBuffer, 90);
         
@@ -168,11 +163,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         
         updateThread = true;
 
-        dispayImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
-        
-        //imgBuffer.Release();
-        if(!notRotatedImg.IsDisposed ) notRotatedImg.Release();
-        
+        imgBuffer.Release();
     }
     
     private void CheckIfLostMarkers()
@@ -249,7 +240,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
             // m.UpdateMarker(img.Cols, img.Rows, corners[i], rejectedImgPoints[i]);
             m.UpdateMarker(img.Rows, img.Cols, corners[i], calibrationData.GetCameraMatrix(),
-                calibrationData.GetDistortionCoefficients(), grayedImg);
+                calibrationData.GetDistortionCoefficients(), grayedImg,Vector3.forward * 90); 
         }
     }
     
@@ -268,13 +259,5 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         throwMarkerCallbacks = !throwMarkerCallbacks;
         drawMarkerOutlines = !drawMarkerOutlines;
         
-    }
-    
-    void rotate(ref Mat src,ref Mat dst, double angle)
-    {
-        Point2f p = new Point2f(src.Cols/2f, src.Rows/2f);  
-        Mat r = Cv2.GetRotationMatrix2D(p, angle, 1.0);
-        Cv2.WarpAffine(src, dst, r, new Size(src.Cols, src.Rows));
-        r.Dispose();
     }
 }
