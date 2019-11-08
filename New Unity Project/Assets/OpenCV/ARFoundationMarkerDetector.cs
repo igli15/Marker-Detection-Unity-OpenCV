@@ -63,11 +63,9 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     void Start()
     {
         Init();
-
         DetectMarkerAsync();
 
         cameraManager.frameReceived += OnCameraFrameReceived;
-
         //cameraManager.subsystem.currentConfiguration = config;
     }
 
@@ -97,7 +95,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     {
         while (true)
         {
-            //Debug.Log("Updating");
+            Debug.Log("Updating");
             
             if (!updateThread)
             {
