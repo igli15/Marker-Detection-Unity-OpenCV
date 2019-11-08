@@ -20,7 +20,10 @@ public class MarkerDetector : MonoBehaviour
     public bool throwMarkerCallbacks = true;
     public bool drawMarkerOutlines = false;
 
+    public float markerDetectorPauseTime = 0;
+
     public CalibrationData calibrationData;
+    
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
     private Mat grayedImg = new Mat();
@@ -39,21 +42,24 @@ public class MarkerDetector : MonoBehaviour
     private Point2f[][] rejectedImgPoints;
 
     private Thread detectMarkersThread;
-    private Thread grayscaleImageThread;
-    
+
     bool updateThread = false;
 
     private int threadCounter = 0;
     private bool outputImage = false;
 
-    private Semaphore threadSemaphore = new Semaphore(1, 1);
-
+    [Sirenix.OdinInspector.ReadOnly]
+    [SerializeField]
+    private float timeCount = 0;   
+    
     protected void Start()
     {
         Init();
 
         DetectMarkerAsync();
-        //grayscaleImageThread.Priority = ThreadPriority.Highest;
+
+        timeCount = markerDetectorPauseTime;
+        
         //detectMarkersThread.Priority = ThreadPriority.Highest;
 
     }
@@ -68,7 +74,6 @@ public class MarkerDetector : MonoBehaviour
         webCamera.OnProcessTexture -= ProcessTexture;
         updateThread = false;
         
-        grayscaleImageThread.Abort();
         detectMarkersThread.Abort();
 
         if (!img.IsDisposed) img.Release();
@@ -93,14 +98,17 @@ public class MarkerDetector : MonoBehaviour
         imgBuffer = ARucoUnityHelper.TextureToMat(input, textureParameters);
         //Debug.Log("New image Assigned");
         
-        if (threadCounter == 0)
+        timeCount += Time.deltaTime;
+        
+        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime)
         {
             imgBuffer.CopyTo(img);
             Interlocked.Increment(ref threadCounter);
+            timeCount = 0;
         }
 
         updateThread = true;
-      
+
         if(outputImage)
         {
             if (drawMarkerOutlines)
@@ -131,11 +139,6 @@ public class MarkerDetector : MonoBehaviour
             detectMarkersThread.Start();
         }
         
-        if (grayscaleImageThread == null || !grayscaleImageThread.IsAlive)
-        {
-            grayscaleImageThread = new Thread(GrayScaleImage);
-            grayscaleImageThread.Start();
-        }
     }
 
     private void CheckIfLostMarkers()
@@ -229,8 +232,10 @@ public class MarkerDetector : MonoBehaviour
                 continue;
             }
 
-            if (threadCounter == 2)
+            if (threadCounter > 0)
             {
+                Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
+                
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                     out rejectedImgPoints);
 
@@ -239,25 +244,13 @@ public class MarkerDetector : MonoBehaviour
                     CheckIfLostMarkers();
                     CheckIfDetectedMarkers();
                 }
+                
                 outputImage = true;
                 Interlocked.Exchange(ref threadCounter, 0);
             }
         }
     }
-
-    private void GrayScaleImage()
-    {
-        while (true)
-        {
-            if (!updateThread) continue;
-
-            if (threadCounter == 1)
-            {
-                Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
-                Interlocked.Increment(ref threadCounter);
-            }
-        }
-    }
+    
     
     public void ToggleDebugMode()
     {
