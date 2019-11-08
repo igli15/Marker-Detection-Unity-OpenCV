@@ -97,20 +97,20 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     {
         while (true)
         {
-            Debug.Log("Updating");
+            //Debug.Log("Updating");
             
             if (!updateThread)
             {
                 //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
                 //mono behaviour or we haven't updated the main thread yet!
                 
-                Debug.Log("SKIPPED");
+                //Debug.Log("SKIPPED");
                 continue;
             }
 
             if (threadCounter > 0)
             {
-                Debug.Log("Detecting Markers");
+                //Debug.Log("Detecting Markers");
                 Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
