@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using ThreadPriority = System.Threading.ThreadPriority;
 
 public class ARFoundationMarkerDetector : MonoBehaviour
 {
@@ -55,6 +56,8 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
     ARucoUnityHelper.TextureConversionParams texParam;
     private XRCameraIntrinsics cameraIntrinsics;
+    
+    public RawImage displayRawImage;
 
     // Start is called before the first frame update
     void Start()
@@ -84,6 +87,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     {
         if (detectMarkersThread == null || !detectMarkersThread.IsAlive)
         {
+            Debug.Log("Starting Thread");
             detectMarkersThread = new Thread(DetectMarkers);
             detectMarkersThread.Start();
         }
@@ -91,21 +95,22 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
     private void DetectMarkers()
     {
-        //Debug.Log(elapsed);
         while (true)
         {
+            Debug.Log("Updating");
+            
             if (!updateThread)
             {
                 //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
                 //mono behaviour or we haven't updated the main thread yet!
-
-                // Debug.Log("grayed img was disposed");
+                
+                Debug.Log("SKIPPED");
                 continue;
             }
 
             if (threadCounter > 0)
             {
-                //Debug.Log("Detecting Markers");
+                Debug.Log("Detecting Markers");
                 Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
@@ -160,12 +165,15 @@ public class ARFoundationMarkerDetector : MonoBehaviour
 
         if (threadCounter == 0)
         {
+            //Debug.Log("Incrementing thread counter");
             imgBuffer.CopyTo(img);
             Interlocked.Increment(ref threadCounter);
         }
 
+        //Debug.Log("ThreadCounter: " + threadCounter);
         updateThread = true;
-
+        
+        displayRawImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
         imgBuffer.Release();
     }
 
@@ -244,6 +252,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
             cameraManager.TryGetIntrinsics(out cameraIntrinsics);
 
             float rotZ = 0;
+            
             switch (Screen.orientation) {
                 case ScreenOrientation.Portrait:
                     rotZ = 90;
