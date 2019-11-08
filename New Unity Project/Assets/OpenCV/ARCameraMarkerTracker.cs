@@ -13,20 +13,10 @@ public class ARCameraMarkerTracker : ARCameraTracker
         
         Matrix4x4 m = trackingTarget.GetMatrix();
         Matrix4x4 inverseMat = m.inverse;
-
-            /*
-        Matrix4x4 markerWorldMatrix = Matrix4x4.TRS(trackingTarget.transform.position,
-            trackingTarget.transform.rotation, trackingTarget.transform.localScale);
-
-        Matrix4x4 finalMat = markerWorldMatrix * inverseMat;
-        transform.SetPositionAndRotation(ARucoUnityHelper.GetPosition(finalMat),ARucoUnityHelper.GetQuaternion(finalMat));
-        */
         
         transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
         transform.position = trackingTarget.transform.position;
         transform.position += ARucoUnityHelper.GetPosition(inverseMat);
-        //Debug.Log(ARucoUnityHelper.GetScale(m));
-        //trackingTarget.transform.localScale = ARucoUnityHelper.GetScale(m);
 
     }
 

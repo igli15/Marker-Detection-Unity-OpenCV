@@ -10,9 +10,9 @@ public abstract class ARCameraTracker : MonoBehaviour
 
     protected virtual void Start()
     {
-        MarkerDetector.OnMarkersDetected += UpdateCameraPose;
-        MarkerDetector.OnMarkersDetected += ConcentrateOnTheClosestMarker;
-        MarkerDetector.OnMarkersLost += StopUpdatingCameraPose;
+        ARFoundationMarkerDetector.OnMarkersDetected += UpdateCameraPose;
+        ARFoundationMarkerDetector.OnMarkersDetected += ConcentrateOnTheClosestMarker;
+        ARFoundationMarkerDetector.OnMarkersLost += StopUpdatingCameraPose;
     }
     
     protected virtual  void LateUpdate()
@@ -52,8 +52,8 @@ public abstract class ARCameraTracker : MonoBehaviour
     //Static events are persistent so we need to manually unsubscribe from them.
     protected virtual void OnDestroy()
     {
-        MarkerDetector.OnMarkersDetected -= UpdateCameraPose;
-        MarkerDetector.OnMarkersDetected -= ConcentrateOnTheClosestMarker;
-        MarkerDetector.OnMarkersLost -= StopUpdatingCameraPose;
+        ARFoundationMarkerDetector.OnMarkersDetected -= UpdateCameraPose;
+        ARFoundationMarkerDetector.OnMarkersDetected -= ConcentrateOnTheClosestMarker;
+        ARFoundationMarkerDetector.OnMarkersLost -= StopUpdatingCameraPose;
     }
 }
