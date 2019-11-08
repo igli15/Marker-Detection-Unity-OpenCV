@@ -57,7 +57,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
     ARucoUnityHelper.TextureConversionParams texParam;
     private XRCameraIntrinsics cameraIntrinsics;
     
-    public RawImage displayRawImage;
+    //public RawImage displayRawImage;
 
     // Start is called before the first frame update
     void Start()
@@ -173,7 +173,7 @@ public class ARFoundationMarkerDetector : MonoBehaviour
         //Debug.Log("ThreadCounter: " + threadCounter);
         updateThread = true;
         
-        displayRawImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
+        //displayRawImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
         imgBuffer.Release();
     }
 
