@@ -15,9 +15,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
     
-    
-    protected DetectorParameters detectorParameters;
-    protected Dictionary dictionary;
+    private DetectorParameters detectorParameters;
+    private Dictionary dictionary;
     protected Mat grayedImg = new Mat();
 
     //private Mat notRotated = new Mat();
@@ -25,14 +24,11 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     protected Mat imgBuffer;
 
     protected Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
-    protected List<int> lostIds = new List<int>();
+    private List<int> lostIds = new List<int>();
 
     protected Point2f[][] corners;
     protected int[] ids;
-
-    protected Point2f[][] cornersCache;
-    protected int[] idsCache;
-
+    
     protected Point2f[][] rejectedImgPoints;
 
     private Thread detectMarkersThread;
