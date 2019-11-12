@@ -14,9 +14,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
-    public bool drawMarkerOutlines = false;
-
-    public CalibrationData calibrationData;
+    
     
     protected DetectorParameters detectorParameters;
     protected Dictionary dictionary;
@@ -55,8 +53,14 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
         DetectMarkerAsync();
         
     }
-    
-    
+
+    private void OnDisable()
+    {
+        updateThread = false;
+        detectMarkersThread.Abort();
+    }
+
+
     private void DetectMarkerAsync()
     {
         if (detectMarkersThread == null || !detectMarkersThread.IsAlive)

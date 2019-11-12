@@ -121,8 +121,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
                     break;
             }
             
-            m.UpdateMarker(img.Rows, img.Cols, corners[i], calibrationData.GetCameraMatrix(),
-                calibrationData.GetDistortionCoefficients(), cameraIntrinsics, grayedImg, Vector3.forward * rotZ);
+            m.UpdateMarker(corners[i], cameraIntrinsics, grayedImg, Vector3.forward * rotZ);
         }
     }
 }

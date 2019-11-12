@@ -39,23 +39,23 @@ public class MarkerBehaviour : MonoBehaviour
         MarkerManager.RegisterMarker(this);
     }
 
-    public void UpdateMarker(float renderTexWidth, float renderTexHeight, Point2f[] corners, double[,] k, double[] d,
+    public void UpdateMarker(Point2f[] corners, double[,] k, double[] d,
         Mat grayMat = null, Nullable<Vector3> additionalRotation = null)
     {
         currentMarkerData.corners = corners;
 
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth, renderTexHeight, k, d, grayMat),
+        UpdateMarkerPose(CreateTransformationMatrix(k, d, grayMat),
             additionalRotation);
     }
 
-    public void UpdateMarker(float renderTexWidth, float renderTexHeight, Point2f[] corners, double[,] k, double[] d,
+    public void UpdateMarker(Point2f[] corners,
         XRCameraIntrinsics cameraIntrinsics, Mat grayMat = null, Nullable<Vector3> additionalRotation = null)
     {
         currentMarkerData.corners = corners;
 
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(CreateTransformationMatrix(renderTexWidth, renderTexHeight, k, d,cameraIntrinsics ,grayMat),
+        UpdateMarkerPose(CreateTransformationMatrix(cameraIntrinsics ,grayMat),
             additionalRotation);
     }
 
@@ -125,7 +125,7 @@ public class MarkerBehaviour : MonoBehaviour
         currentMarkerPose.scale = ARucoUnityHelper.GetScale(currentTransformationMatrix);
     }
 
-    private Matrix4x4 CreateTransformationMatrix(float width, float height, double[,] k, double[] d, Mat grayMat = null)
+    private Matrix4x4 CreateTransformationMatrix(double[,] k, double[] d, Mat grayMat = null)
     {
         if (currentMarkerData.corners.Length == 0)
         {
@@ -140,20 +140,6 @@ public class MarkerBehaviour : MonoBehaviour
             new Point3f(markerSizeInMeters / 2f, markerSizeInMeters / 2f, 0f),
             new Point3f(markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f),
             new Point3f(-markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f)
-        };
-
-        double maxSize = (double) Mathf.Max(width, height);
-        double fx = maxSize;
-        double fy = maxSize;
-
-        double cx = width / 2d;
-        double cy = height / 2d;
-
-        double[,] rawCameraMatrix = new double[3, 3]
-        {
-            {fx, 0d, cx},
-            {0d, fy, cy},
-            {0d, 0d, 1d}
         };
 
         double[] rvec = new double[3] {0d, 0d, 0d};
@@ -185,7 +171,7 @@ public class MarkerBehaviour : MonoBehaviour
         return matrix;
     }
     
-    private Matrix4x4 CreateTransformationMatrix(float width, float height, double[,] k, double[] d, XRCameraIntrinsics cameraIntrinsics,Mat grayMat = null)
+    private Matrix4x4 CreateTransformationMatrix(XRCameraIntrinsics cameraIntrinsics,Mat grayMat = null)
     {
         if (currentMarkerData.corners.Length == 0)
         {
