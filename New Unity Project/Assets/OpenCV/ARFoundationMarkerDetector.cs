@@ -7,6 +7,7 @@ using OpenCvSharp.Aruco;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.SpatialTracking;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -39,7 +40,9 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
         {
             return;
         }
-
+        
+        timeCount += Time.deltaTime;
+        
         var format = TextureFormat.RGBA32;
 
         if (texture == null || texture.width != image.width || texture.height != image.height)
@@ -66,12 +69,13 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
         imgBuffer = ARucoUnityHelper.TextureToMat(texture, texParam);
 
         //rotate(ref notRotated,ref imgBuffer, 90);
-
-        if (threadCounter == 0)
+        
+        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime)
         {
             //Debug.Log("Incrementing thread counter");
             imgBuffer.CopyTo(img);
             Interlocked.Increment(ref threadCounter);
+            timeCount = 0;
         }
 
         //Debug.Log("ThreadCounter: " + threadCounter);

@@ -13,19 +13,12 @@ public class MarkerDetector : AbstractMarkerDetector
 
     public bool drawMarkerOutlines = false;
 
-    public float markerDetectorPauseTime = 0;
-    
     public CalibrationData calibrationData;
-
-    [Sirenix.OdinInspector.ReadOnly] [SerializeField]
-    private float timeCount = 0;
 
     protected void Start()
     {
         Init();
-
-        timeCount = markerDetectorPauseTime;
-
+        
         //detectMarkersThread.Priority = ThreadPriority.Highest;
     }
 
@@ -37,10 +30,6 @@ public class MarkerDetector : AbstractMarkerDetector
     private void OnDisable()
     {
         webCamera.OnProcessTexture -= ProcessTexture;
-
-        if (!img.IsDisposed) img.Release();
-        if (!imgBuffer.IsDisposed) imgBuffer.Release();
-        if (!grayedImg.IsDisposed) grayedImg.Release();
     }
 
     // Our sketch generation function

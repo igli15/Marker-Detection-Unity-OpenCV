@@ -14,6 +14,10 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
+    public float markerDetectorPauseTime = 0;
+    
+    [Sirenix.OdinInspector.ReadOnly] [SerializeField]
+    protected float timeCount = 0;
     
     private DetectorParameters detectorParameters;
     private Dictionary dictionary;
@@ -46,6 +50,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
         
+        timeCount = markerDetectorPauseTime;
+        
         DetectMarkerAsync();
         
     }
@@ -54,6 +60,10 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     {
         updateThread = false;
         detectMarkersThread.Abort();
+        
+        if (!img.IsDisposed) img.Release();
+        //if (!imgBuffer.IsDisposed) imgBuffer.Release();
+        if (!grayedImg.IsDisposed) grayedImg.Release();
     }
 
 
@@ -72,7 +82,9 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     {
         while (true)
         {
+            #if UNITY_ANDROID
             Debug.Log("Updating...");
+            #endif
             
             if (!updateThread)
             {
@@ -152,8 +164,20 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     protected virtual void CheckIfDetectedMarkers()
     {
+        int count = 0;
+        
         if (ids.Length > 0 && OnMarkersDetected != null)
         {
+            for (int i = 0; i < ids.Length; i++)
+            {
+                if (!MarkerManager.IsMarkerRegistered(ids[i]))
+                {
+                    count++;
+                }
+            }
+            
+            if(count == ids.Length) return;
+
             OnMarkersDetected.Invoke(ids);
         }
     }

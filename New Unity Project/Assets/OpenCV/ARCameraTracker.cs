@@ -15,7 +15,7 @@ public abstract class ARCameraTracker : MonoBehaviour
         AbstractMarkerDetector.OnMarkersLost += StopUpdatingCameraPose;
     }
     
-    protected virtual  void LateUpdate()
+    protected virtual void LateUpdate()
     {
         if (shouldReposition)
         {
@@ -38,12 +38,12 @@ public abstract class ARCameraTracker : MonoBehaviour
         return ARucoUnityHelper.GetPosition(m.GetMatrix()).magnitude;
     }
 
-    protected void UpdateCameraPose(int[] ids)
+    protected virtual void UpdateCameraPose(int[] ids)
     {
         shouldReposition = true;
     }
 
-    protected void StopUpdatingCameraPose(int[] ids)
+    protected virtual void StopUpdatingCameraPose(int[] ids)
     {
         shouldReposition = false;
     }
