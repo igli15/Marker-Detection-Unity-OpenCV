@@ -30,11 +30,6 @@ public class ARCameraMarkerTracker : ARCameraTracker
         Matrix4x4 newHolder = currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse; // holder = calib x inverse(cam)
         transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
         
-        /*
-        gameObject.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
-        gameObject.transform.position = trackingTarget.transform.position;
-        gameObject.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
-        */
     }
 
 
