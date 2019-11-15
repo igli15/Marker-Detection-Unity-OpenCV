@@ -8,9 +8,8 @@ using UnityEngine.XR.ARFoundation;
 public class ARCameraMarkerTracker : ARCameraTracker
 {
     private MarkerBehaviour trackingTarget;
-
-    public Transform camPivot;
-    private TrackedPoseDriver trackedDevicePose;
+    public Transform cameraTransform;
+    public Transform currentTrackedMarkerTransform;
 
     protected override void RepositionCamera()
     {
@@ -21,15 +20,16 @@ public class ARCameraMarkerTracker : ARCameraTracker
         Matrix4x4 m = trackingTarget.GetMatrix();
         Matrix4x4 inverseMat = m.inverse;
         
-        gameObject.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
-        gameObject.transform.position = trackingTarget.transform.position;
-        gameObject.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
-    
+       //TODO WORKS UNDERSTAND WHY THOUGH 
 
-        //trackedDevicePose.originPose = Pose.identity;
-        //transform.localPosition = Vector3.zero;
-        //transform.localRotation = Quaternion.identity;
-
+       currentTrackedMarkerTransform.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
+       currentTrackedMarkerTransform.transform.position = trackingTarget.transform.position;
+       currentTrackedMarkerTransform.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
+       
+        Matrix4x4 camMat = Matrix4x4.TRS(cameraTransform.localPosition, cameraTransform.localRotation, cameraTransform.localScale);
+        Matrix4x4 newHolder = currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse; // holder = calib x inverse(cam)
+        transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
+        
     }
 
 
