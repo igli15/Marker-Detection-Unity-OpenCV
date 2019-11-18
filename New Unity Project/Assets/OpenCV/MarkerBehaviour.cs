@@ -55,7 +55,7 @@ public class MarkerBehaviour : MonoBehaviour
         currentMarkerData.corners = corners;
 
         //currentMarkerData.rejectedImgPoints = rejectedImgPoints;
-        UpdateMarkerPose(CreateTransformationMatrix(cameraIntrinsics ,grayMat),
+        UpdateMarkerPose(CreateTransformationMatrix(cameraIntrinsics, grayMat),
             additionalRotation);
     }
 
@@ -170,8 +170,8 @@ public class MarkerBehaviour : MonoBehaviour
         matrix.SetRow(3, new Vector4(0f, 0f, 0f, 1f));
         return matrix;
     }
-    
-    private Matrix4x4 CreateTransformationMatrix(XRCameraIntrinsics cameraIntrinsics,Mat grayMat = null)
+
+    private Matrix4x4 CreateTransformationMatrix(XRCameraIntrinsics cameraIntrinsics, Mat grayMat = null)
     {
         if (currentMarkerData.corners.Length == 0)
         {
@@ -187,13 +187,35 @@ public class MarkerBehaviour : MonoBehaviour
             new Point3f(markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f),
             new Point3f(-markerSizeInMeters / 2f, -markerSizeInMeters / 2f, 0f)
         };
+
+
+        double[,] rawCameraMatrix;
         
-        double[,] rawCameraMatrix = new double[3, 3]
+       // Debug.Log("Focal Length: " +cameraIntrinsics.focalLength.x + " "+ cameraIntrinsics.focalLength.y);
+        //Debug.Log("Principal Point: " +cameraIntrinsics.principalPoint.x + " "+ cameraIntrinsics.principalPoint.y);
+        
+        rawCameraMatrix = new double[3, 3]
         {
             {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.x},
-            {0d, cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.y},
+            {0d,cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.y},
             {0d, 0d, 1d}
         };
+        
+        
+
+        /*
+        else
+        {
+            Debug.Log("Other Focal Length: " +cameraIntrinsics.focalLength.x + " "+ cameraIntrinsics.focalLength.y);
+            Debug.Log("Other Right Principal: " +cameraIntrinsics.principalPoint.x + " "+ cameraIntrinsics.principalPoint.y);
+            rawCameraMatrix = new double[3, 3]
+            {
+                {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.y},
+                {0d, cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.x},
+                {0d, 0d, 1d}
+            };
+        }
+        */
 
         double[] rvec = new double[3] {0d, 0d, 0d};
         double[] tvec = new double[3] {0d, 0d, 0d};
@@ -206,7 +228,8 @@ public class MarkerBehaviour : MonoBehaviour
                 TermCriteria.Both(30, 0.001));
         }
 
-        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, rawCameraMatrix, new double[5] {0,0,0,0,0}, out rvec, out tvec, false, SolvePnPFlags.Iterative);
+        Cv2.SolvePnP(markerPoints, currentMarkerData.corners, rawCameraMatrix, new double[5] {0, 0, 0, 0, 0}, out rvec,
+            out tvec, false, SolvePnPFlags.Iterative);
 
         Cv2.Rodrigues(rvec, out rotMatrix);
 

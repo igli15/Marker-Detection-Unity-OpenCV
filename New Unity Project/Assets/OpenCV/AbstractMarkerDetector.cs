@@ -11,6 +11,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
 
+    public static Action<int[]> OnMarkerDetectionPaused;
+
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
@@ -102,13 +104,14 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                     out rejectedImgPoints);
+                
 
                 if (throwMarkerCallbacks)
                 {
                     CheckIfLostMarkers();
                     CheckIfDetectedMarkers();
                 }
-
+                
                 outputImage = true;
                 Interlocked.Exchange(ref threadCounter, 0);
             }
@@ -117,6 +120,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     
     protected virtual void CheckIfLostMarkers()
     {
+        if (ids == null) return;
+        
         if (ids.Length == 0)
         {
             foreach (MarkerBehaviour lostMarker in allDetectedMarkers.Values)
@@ -164,6 +169,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     protected virtual void CheckIfDetectedMarkers()
     {
+        if(ids == null) return;
+        
         int count = 0;
         
         if (ids.Length > 0 && OnMarkersDetected != null)

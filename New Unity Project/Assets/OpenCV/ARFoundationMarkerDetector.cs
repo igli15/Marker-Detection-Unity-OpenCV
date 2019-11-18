@@ -21,7 +21,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
     
     ARucoUnityHelper.TextureConversionParams texParam;
     private XRCameraIntrinsics cameraIntrinsics;
-    
+
     //public RawImage displayRawImage;
 
     // Start is called before the first frame update
@@ -77,6 +77,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
             Interlocked.Increment(ref threadCounter);
             timeCount = 0;
         }
+        
 
         //Debug.Log("ThreadCounter: " + threadCounter);
         updateThread = true;

@@ -15,11 +15,12 @@ public abstract class ARCameraTracker : MonoBehaviour
         AbstractMarkerDetector.OnMarkersLost += StopUpdatingCameraPose;
     }
     
-    protected virtual void LateUpdate()
+    protected virtual void Update()
     {
         if (shouldReposition)
         {
             RepositionCamera();
+            shouldReposition = false;
         }
     }
     
