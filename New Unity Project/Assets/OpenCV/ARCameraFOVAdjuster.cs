@@ -6,9 +6,10 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-public class ARCameraFOV : MonoBehaviour
+public class ARCameraFOVAdjuster : MonoBehaviour
 {
     public ARCameraManager cameraManager;
+    public Camera camera;
     private XRCameraIntrinsics cameraIntrinsics;
 
     private void OnEnable()
@@ -44,7 +45,7 @@ public class ARCameraFOV : MonoBehaviour
                                 (float) (imgSize.Height - cameraIntrinsics.principalPoint.y),
                                 (float) cameraIntrinsics.focalLength.y));
 
-        cameraManager.GetComponent<Camera>().fieldOfView = (float) fovy * (float)fovYScale;
+        camera.fieldOfView = (float) fovy * (float)fovYScale;
     }
 
     private void OnDisable()
