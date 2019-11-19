@@ -190,32 +190,13 @@ public class MarkerBehaviour : MonoBehaviour
 
 
         double[,] rawCameraMatrix;
-        
-       // Debug.Log("Focal Length: " +cameraIntrinsics.focalLength.x + " "+ cameraIntrinsics.focalLength.y);
-        //Debug.Log("Principal Point: " +cameraIntrinsics.principalPoint.x + " "+ cameraIntrinsics.principalPoint.y);
-        
+
         rawCameraMatrix = new double[3, 3]
         {
             {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.x},
             {0d,cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.y},
             {0d, 0d, 1d}
         };
-        
-        
-
-        /*
-        else
-        {
-            Debug.Log("Other Focal Length: " +cameraIntrinsics.focalLength.x + " "+ cameraIntrinsics.focalLength.y);
-            Debug.Log("Other Right Principal: " +cameraIntrinsics.principalPoint.x + " "+ cameraIntrinsics.principalPoint.y);
-            rawCameraMatrix = new double[3, 3]
-            {
-                {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.y},
-                {0d, cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.x},
-                {0d, 0d, 1d}
-            };
-        }
-        */
 
         double[] rvec = new double[3] {0d, 0d, 0d};
         double[] tvec = new double[3] {0d, 0d, 0d};
