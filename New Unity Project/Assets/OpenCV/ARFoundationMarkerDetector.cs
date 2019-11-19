@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
+using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -22,6 +23,11 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
     ARucoUnityHelper.TextureConversionParams texParam;
     private XRCameraIntrinsics cameraIntrinsics;
 
+    public bool UseCustomCalibration = false;
+
+    [ShowIf("UseCustomCalibration")]
+    public CalibrationData calibrationData;
+    
     //public RawImage displayRawImage;
 
     // Start is called before the first frame update
@@ -106,12 +112,11 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
                 m.OnMarkerDetected.Invoke();
                 allDetectedMarkers.Add(m.GetMarkerID(), m);
             }
-
-            cameraManager.TryGetIntrinsics(out cameraIntrinsics);
-
-            float rotZ = 0;
             
-            switch (Screen.orientation) {
+            float rotZ = 0;
+
+            switch (Screen.orientation)
+            {
                 case ScreenOrientation.Portrait:
                     rotZ = 90;
                     break;
@@ -125,8 +130,17 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
                     rotZ = -90;
                     break;
             }
-            
-            m.UpdateMarker(corners[i], cameraIntrinsics, grayedImg, Vector3.forward * rotZ);
+
+            if (!UseCustomCalibration)
+            {
+                cameraManager.TryGetIntrinsics(out cameraIntrinsics);
+
+                m.UpdateMarker(corners[i], cameraIntrinsics, grayedImg, Vector3.forward * rotZ);
+            }
+            else
+            {
+                m.UpdateMarker(corners[i], calibrationData.GetCameraMatrix(),calibrationData.GetDistortionCoefficients(), grayedImg,Vector3.forward * rotZ);
+            }
         }
     }
 }

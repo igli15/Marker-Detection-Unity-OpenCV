@@ -15,8 +15,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
     protected override void RepositionCamera()
     {
-        if (trackingTarget == null) return;
-        if (arCamera.velocity.magnitude > cameraMaxSpeed)
+        if (arCamera.velocity.magnitude > cameraMaxSpeed || trackingTarget == null)
         {
             Debug.Log("Returning");
             return;
