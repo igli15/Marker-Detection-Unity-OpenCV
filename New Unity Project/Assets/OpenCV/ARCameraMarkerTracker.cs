@@ -8,28 +8,33 @@ using UnityEngine.XR.ARFoundation;
 public class ARCameraMarkerTracker : ARCameraTracker
 {
     private MarkerBehaviour trackingTarget;
-    public Transform cameraTransform;
+    public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
+    public float cameraMaxSpeed = 1;
+   
 
     protected override void RepositionCamera()
     {
         if (trackingTarget == null) return;
-
-        //Debug.Log("HERE");
-
+        if (arCamera.velocity.magnitude > cameraMaxSpeed)
+        {
+            Debug.Log("Returning");
+            return;
+        }
+        
         Matrix4x4 m = trackingTarget.GetMatrix();
         Matrix4x4 inverseMat = m.inverse;
-        
-       //TODO WORKS UNDERSTAND WHY THOUGH 
 
-       currentTrackedMarkerTransform.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
-       currentTrackedMarkerTransform.transform.position = trackingTarget.transform.position;
-       currentTrackedMarkerTransform.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
-       
-        Matrix4x4 camMat = Matrix4x4.TRS(cameraTransform.localPosition, cameraTransform.localRotation, cameraTransform.localScale);
-        Matrix4x4 newHolder = currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse; // holder = calib x inverse(cam)
-        transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
+        currentTrackedMarkerTransform.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
+        currentTrackedMarkerTransform.transform.position = trackingTarget.transform.position;
+        currentTrackedMarkerTransform.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
+
+        Matrix4x4 camMat = Matrix4x4.TRS(arCamera.transform.localPosition, arCamera.transform.localRotation,
+            arCamera.transform.localScale);
         
+        Matrix4x4 newHolder =
+            currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse;
+        transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
     }
 
 
