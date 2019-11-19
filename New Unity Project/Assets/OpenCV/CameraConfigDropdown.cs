@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 /// <summary>
 /// Populates a drop down UI element with all the supported
@@ -15,6 +17,8 @@ using UnityEngine.XR.ARFoundation;
 [RequireComponent(typeof(Dropdown))]
 public class CameraConfigDropdown : MonoBehaviour
 {
+    public static event Action<XRCameraConfiguration> OnConfigChanged;
+    
     List<string> m_ConfigurationNames;
 
     Dropdown m_Dropdown;
@@ -60,6 +64,8 @@ public class CameraConfigDropdown : MonoBehaviour
 
             // Make it the active one
             cameraManager.currentConfiguration = configuration;
+
+            if(OnConfigChanged != null) OnConfigChanged(configuration);
         }
     }
 

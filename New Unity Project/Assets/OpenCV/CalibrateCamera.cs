@@ -175,7 +175,7 @@ public class CalibrateCamera : MonoBehaviour
         bool b = false;
 
         b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners),
-            ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage);
+            ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage | ChessboardFlags.FastCheck);
 
         if (!b) return;
 

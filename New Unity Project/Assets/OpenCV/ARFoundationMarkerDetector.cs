@@ -24,11 +24,14 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
     private XRCameraIntrinsics cameraIntrinsics;
 
     public bool UseCustomCalibration = false;
-
+    
     [ShowIf("UseCustomCalibration")]
     public CalibrationData calibrationData;
-    
-    //public RawImage displayRawImage;
+
+    public bool showOpenCvTexture = false;
+
+    [ShowIf("showOpenCvTexture")]
+    public RawImage openCvTexture;
 
     // Start is called before the first frame update
     void Start()
@@ -36,6 +39,8 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
         texParam = new ARucoUnityHelper.TextureConversionParams();
         cameraManager.frameReceived += OnCameraFrameReceived;
         Init();
+        
+        if(showOpenCvTexture) openCvTexture.gameObject.SetActive(true);
     }
     
 
@@ -87,8 +92,12 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
         //Debug.Log("ThreadCounter: " + threadCounter);
         updateThread = true;
-        
-        //displayRawImage.texture = ARucoUnityHelper.MatToTexture(imgBuffer,texture);
+
+        if (showOpenCvTexture)
+        {
+            openCvTexture.texture = ARucoUnityHelper.MatToTexture(imgBuffer, texture);
+        }
+
         imgBuffer.Release();
     }
     protected override void CheckIfDetectedMarkers()
