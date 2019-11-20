@@ -227,4 +227,9 @@ public class MarkerBehaviour : MonoBehaviour
         matrix.SetRow(3, new Vector4(0f, 0f, 0f, 1f));
         return matrix;
     }
+
+    public void SetWorldSize(float size)
+    {
+        sizeInMeters = size;
+    }
 }
