@@ -5,9 +5,34 @@ using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public abstract class AbstractMarkerDetector : MonoBehaviour
 {
+    [Serializable]
+    public struct DetectionParameters
+    {
+        public int adaptiveThreshWinSizeMin; //3
+        public int adaptiveThreshWinSizeMax; //23
+        public int adaptiveThreshWinSizeStep; //10
+        public double adaptiveThreshConstant; //7
+        public double minMarkerPerimeterRate; //0.03
+        public double maxMarkerPerimeterRate; //4.0
+        public double polygonalApproxAccuracyRate; //0.03
+        public double minCornerDistanceRate; //0.05
+        public int minDistanceToBorder; //3
+        public double minMarkerDistanceRate; //0.05
+        public int cornerRefinementWinSize; //5
+        public int cornerRefinementMaxIterations; //30
+        public double cornerRefinementMinAccuracy; //0.1
+        public int markerBorderBits; //1
+        public int perspectiveRemovePixelPerCell; //8
+        public double perspectiveRemoveIgnoredMarginPerCell; //0.13
+        public double maxErroneousBitsInBorderRate; //0.35
+        public double minOtsuStdDev; //5.0
+        public double errorCorrectionRate; //0.6
+        
+    }
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
 
@@ -17,6 +42,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
     public float markerDetectorPauseTime = 0;
+
+    [FormerlySerializedAs("detectionParams")] public DetectionParameters detectionParamsStruct;
     
     [Sirenix.OdinInspector.ReadOnly] [SerializeField]
     protected float timeCount = 0;
@@ -49,7 +76,9 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
         detectorParameters = DetectorParameters.Create();
 
         detectorParameters.DoCornerRefinement = doCornerRefinement;
-
+        //Apply different detection parameters
+        AssignDetectorParameterStructValues();
+        
         dictionary = CvAruco.GetPredefinedDictionary(markerDictionaryType);
         
         timeCount = markerDetectorPauseTime;
@@ -187,5 +216,29 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
             OnMarkersDetected.Invoke(ids);
         }
+    }
+
+    private void AssignDetectorParameterStructValues()
+    {
+        detectorParameters.AdaptiveThreshWinSizeMin = detectionParamsStruct.adaptiveThreshWinSizeMin;
+        detectorParameters.AdaptiveThreshWinSizeMax = detectionParamsStruct.adaptiveThreshWinSizeMax;
+        detectorParameters.AdaptiveThreshWinSizeStep = detectionParamsStruct.adaptiveThreshWinSizeStep;
+        detectorParameters.AdaptiveThreshConstant = detectionParamsStruct.adaptiveThreshConstant;
+        detectorParameters.MinMarkerPerimeterRate = detectionParamsStruct.minMarkerPerimeterRate;
+        detectorParameters.MaxMarkerPerimeterRate = detectionParamsStruct.maxMarkerPerimeterRate;
+        detectorParameters.PolygonalApproxAccuracyRate = detectionParamsStruct.polygonalApproxAccuracyRate;
+        detectorParameters.MinCornerDistanceRate = detectionParamsStruct.minCornerDistanceRate;
+        detectorParameters.MinDistanceToBorder = detectionParamsStruct.minDistanceToBorder;
+        detectorParameters.MinMarkerDistanceRate = detectionParamsStruct.minMarkerDistanceRate;
+        detectorParameters.CornerRefinementWinSize = detectionParamsStruct.cornerRefinementWinSize;
+        detectorParameters.CornerRefinementMaxIterations = detectionParamsStruct.cornerRefinementMaxIterations;
+        detectorParameters.CornerRefinementMinAccuracy = detectionParamsStruct.cornerRefinementMinAccuracy;
+        detectorParameters.MarkerBorderBits = detectionParamsStruct.markerBorderBits;
+        detectorParameters.PerspectiveRemovePixelPerCell = detectionParamsStruct.perspectiveRemovePixelPerCell;
+        detectorParameters.PerspectiveRemoveIgnoredMarginPerCell =
+            detectionParamsStruct.perspectiveRemoveIgnoredMarginPerCell;
+        detectorParameters.MaxErroneousBitsInBorderRate = detectionParamsStruct.maxErroneousBitsInBorderRate;
+        detectorParameters.MinOtsuStdDev = detectionParamsStruct.minOtsuStdDev;
+        detectorParameters.ErrorCorrectionRate = detectionParamsStruct.errorCorrectionRate;
     }
 }

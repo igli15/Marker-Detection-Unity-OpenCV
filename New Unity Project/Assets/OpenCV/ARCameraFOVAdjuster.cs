@@ -12,7 +12,7 @@ public class ARCameraFOVAdjuster : MonoBehaviour
     public Camera camera;
     private XRCameraIntrinsics cameraIntrinsics;
 
-    private void OnEnable()
+    private void Awake()
     {
         CameraConfigDropdown.OnConfigChanged += ChangeFOV;
     }
@@ -48,7 +48,7 @@ public class ARCameraFOVAdjuster : MonoBehaviour
         camera.fieldOfView = (float) fovy * (float)fovYScale;
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         CameraConfigDropdown.OnConfigChanged -= ChangeFOV;
     }
