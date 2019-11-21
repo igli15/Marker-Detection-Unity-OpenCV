@@ -1,25 +1,27 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SpatialTracking;
-using UnityEngine.XR.ARFoundation;
+﻿using UnityEngine;
 
 public class ARCameraMarkerTracker : ARCameraTracker
 {
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
-    public float maxAngle = 90;
     
+    public float maxAngle = 100;
+    public float minAngle = 75;
+
+    private Pose oldPose = new Pose();
+
     protected override void RepositionCamera()
     {
-        if (trackingTarget == null && Vector3.Angle(transform.up, -trackingTarget.transform.forward) >= maxAngle)
+        if (trackingTarget == null)
         {
             Debug.Log("Returning");
             return;
         }
-        
+
+        oldPose.position = transform.position;
+        oldPose.rotation = transform.rotation;
+
         Matrix4x4 m = trackingTarget.GetMatrix();
         Matrix4x4 inverseMat = m.inverse;
 
@@ -33,6 +35,13 @@ public class ARCameraMarkerTracker : ARCameraTracker
         Matrix4x4 newHolder =
             currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse;
         transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
+
+        float angle = Vector3.Angle(transform.up, -trackingTarget.transform.forward);
+
+        if (angle >= maxAngle || angle < minAngle)
+        {
+            transform.SetPositionAndRotation(oldPose.position,oldPose.rotation);
+        }
     }
 
 
