@@ -10,10 +10,11 @@ public class ARCameraMarkerTracker : ARCameraTracker
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
-
+    public float maxAngle = 90;
+    
     protected override void RepositionCamera()
     {
-        if (trackingTarget == null)
+        if (trackingTarget == null && Vector3.Angle(transform.up, -trackingTarget.transform.forward) >= maxAngle)
         {
             Debug.Log("Returning");
             return;
