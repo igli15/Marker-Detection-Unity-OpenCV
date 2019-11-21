@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using OpenCvSharp;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -11,11 +12,22 @@ public class ARCameraFOVAdjuster : MonoBehaviour
     public ARCameraManager cameraManager;
     public Camera camera;
     private XRCameraIntrinsics cameraIntrinsics;
-
+    
+    private bool init = false;
     private void Awake()
     {
         CameraConfigDropdown.OnConfigChanged += ChangeFOV;
     }
+
+    private void Update()
+    {
+        if (cameraManager.GetConfigurations(Allocator.Temp).Length > 0 && init == false)
+        {
+            ChangeFOV(cameraManager.currentConfiguration.GetValueOrDefault());
+            init = true;
+        }
+    }
+
 
     public void ChangeFOV(XRCameraConfiguration config)
     {
@@ -45,7 +57,9 @@ public class ARCameraFOVAdjuster : MonoBehaviour
                                 (float) (imgSize.Height - cameraIntrinsics.principalPoint.y),
                                 (float) cameraIntrinsics.focalLength.y));
 
+        //Debug.Log("oldFOV: " + camera.fieldOfView);
         camera.fieldOfView = (float) fovy * (float)fovYScale;
+        //Debug.Log("newFOV: " + camera.fieldOfView);
     }
 
     private void OnDestroy()

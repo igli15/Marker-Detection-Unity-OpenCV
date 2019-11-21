@@ -18,6 +18,10 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 {
     public ARCameraManager cameraManager;
 
+    public Camera arCamera;
+
+    public float limitVelocityMagnitude = 0.5f;
+    
     private Texture2D texture;
     
     ARucoUnityHelper.TextureConversionParams texParam;
@@ -81,7 +85,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
         //rotate(ref notRotated,ref imgBuffer, 90);
         
-        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime)
+        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime && arCamera.velocity.magnitude < limitVelocityMagnitude)
         {
             //Debug.Log("Incrementing thread counter");
             imgBuffer.CopyTo(img);

@@ -70,7 +70,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     protected int threadCounter = 0;
     protected bool outputImage = false;
-    
+
     protected virtual void Init()
     {
         detectorParameters = DetectorParameters.Create();
@@ -107,8 +107,14 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
             detectMarkersThread.Start();
         }
     }
+
+    private void OnApplicationQuit()
+    {
+       if(detectMarkersThread.IsAlive) detectMarkersThread.Abort();
+    }
     
     
+
     private void DetectMarkers()
     {
         while (true)

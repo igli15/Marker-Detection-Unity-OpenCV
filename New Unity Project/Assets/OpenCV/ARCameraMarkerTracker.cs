@@ -10,11 +10,10 @@ public class ARCameraMarkerTracker : ARCameraTracker
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
-    public float cameraMaxSpeed = 1;
-    
+
     protected override void RepositionCamera()
     {
-        if (arCamera.velocity.magnitude > cameraMaxSpeed || trackingTarget == null)
+        if (trackingTarget == null)
         {
             Debug.Log("Returning");
             return;
