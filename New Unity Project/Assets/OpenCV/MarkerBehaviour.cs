@@ -191,12 +191,55 @@ public class MarkerBehaviour : MonoBehaviour
 
         double[,] rawCameraMatrix;
 
+        float fx = 0;
+        float fy = 0;
+
+        float cx = 0;
+        float cy = 0;
+        
+        switch (Screen.orientation)
+        {
+            //90
+            case ScreenOrientation.Portrait:
+                fx = cameraIntrinsics.focalLength.y;
+                fy = cameraIntrinsics.focalLength.x;
+
+                cx = cameraIntrinsics.principalPoint.x;
+                cy = (float)(cameraIntrinsics.resolution.y) - cameraIntrinsics.principalPoint.y;
+                break;
+            //180
+            case ScreenOrientation.LandscapeLeft:
+                fx = cameraIntrinsics.focalLength.x;
+                fy = cameraIntrinsics.focalLength.y;
+
+                cx =  (float)(cameraIntrinsics.resolution.x) - cameraIntrinsics.principalPoint.x;
+                cy = (float)(cameraIntrinsics.resolution.y) - cameraIntrinsics.principalPoint.y;
+                break;
+            //0
+            case ScreenOrientation.LandscapeRight:
+                fx = cameraIntrinsics.focalLength.x;
+                fy = cameraIntrinsics.focalLength.y;
+
+                cx = cameraIntrinsics.principalPoint.x;
+                cy = cameraIntrinsics.principalPoint.y;
+                break;
+            //270
+            case ScreenOrientation.PortraitUpsideDown:
+                fx = cameraIntrinsics.focalLength.y;
+                fy = cameraIntrinsics.focalLength.x;
+
+                cx = cameraIntrinsics.principalPoint.y;
+                cy = (float)(cameraIntrinsics.resolution.x) - cameraIntrinsics.principalPoint.x;
+                break;
+        }
+
         rawCameraMatrix = new double[3, 3]
         {
-            {cameraIntrinsics.focalLength.x, 0d, cameraIntrinsics.principalPoint.x},
-            {0d,cameraIntrinsics.focalLength.y, cameraIntrinsics.principalPoint.y},
+            {fx, 0d, cx},
+            {0d,fy, cy},
             {0d, 0d, 1d}
         };
+
 
         double[] rvec = new double[3] {0d, 0d, 0d};
         double[] tvec = new double[3] {0d, 0d, 0d};

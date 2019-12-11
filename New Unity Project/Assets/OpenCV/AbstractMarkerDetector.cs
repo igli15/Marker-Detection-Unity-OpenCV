@@ -73,6 +73,8 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     protected virtual void Init()
     {
+        Application.targetFrameRate = 60;
+        
         detectorParameters = DetectorParameters.Create();
 
         detectorParameters.DoCornerRefinement = doCornerRefinement;
