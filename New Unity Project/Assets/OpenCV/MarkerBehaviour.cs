@@ -197,41 +197,15 @@ public class MarkerBehaviour : MonoBehaviour
         float cx = 0;
         float cy = 0;
         
-        switch (Screen.orientation)
-        {
-            //90
-            case ScreenOrientation.Portrait:
-                fx = cameraIntrinsics.focalLength.y;
-                fy = cameraIntrinsics.focalLength.x;
+        //Use the Landscape left orientation for our camera camera intrinsics since 
+        //the picture that goes to opencv its always oriented that way so we need to edit our principal points,
+        //by rotation them 270 degrees.
+        
+        fx = cameraIntrinsics.focalLength.x;
+        fy = cameraIntrinsics.focalLength.y;
 
-                cx = cameraIntrinsics.principalPoint.x;
-                cy = (float)(cameraIntrinsics.resolution.y) - cameraIntrinsics.principalPoint.y;
-                break;
-            //180
-            case ScreenOrientation.LandscapeLeft:
-                fx = cameraIntrinsics.focalLength.x;
-                fy = cameraIntrinsics.focalLength.y;
-
-                cx =  (float)(cameraIntrinsics.resolution.x) - cameraIntrinsics.principalPoint.x;
-                cy = (float)(cameraIntrinsics.resolution.y) - cameraIntrinsics.principalPoint.y;
-                break;
-            //0
-            case ScreenOrientation.LandscapeRight:
-                fx = cameraIntrinsics.focalLength.x;
-                fy = cameraIntrinsics.focalLength.y;
-
-                cx = cameraIntrinsics.principalPoint.x;
-                cy = cameraIntrinsics.principalPoint.y;
-                break;
-            //270
-            case ScreenOrientation.PortraitUpsideDown:
-                fx = cameraIntrinsics.focalLength.y;
-                fy = cameraIntrinsics.focalLength.x;
-
-                cx = cameraIntrinsics.principalPoint.y;
-                cy = (float)(cameraIntrinsics.resolution.x) - cameraIntrinsics.principalPoint.x;
-                break;
-        }
+        cx =  (float)(cameraIntrinsics.resolution.x) - cameraIntrinsics.principalPoint.x;
+        cy = (float)(cameraIntrinsics.resolution.y) - cameraIntrinsics.principalPoint.y;
 
         rawCameraMatrix = new double[3, 3]
         {
