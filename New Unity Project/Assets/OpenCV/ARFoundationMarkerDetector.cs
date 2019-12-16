@@ -20,7 +20,8 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
     public Camera arCamera;
 
-    public float limitVelocityMagnitude = 0.5f;
+    public float maxPositionChangePerFrame = 0.5f;
+    public float maxRotationChangePerFrameDegrees = 1.5f;
     
     private Texture2D texture;
     
@@ -37,9 +38,13 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
     [ShowIf("showOpenCvTexture")]
     public RawImage openCvTexture;
 
+
+    private PositionAndRotationTracker cameraPoseTracker;
+
     // Start is called before the first frame update
     void Start()
     {
+        cameraPoseTracker = arCamera.GetComponent<PositionAndRotationTracker>();
         texParam = new ARucoUnityHelper.TextureConversionParams();
         cameraManager.frameReceived += OnCameraFrameReceived;
         Init();
@@ -85,7 +90,8 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
         //rotate(ref notRotated,ref imgBuffer, 90);
         
-        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime && arCamera.velocity.magnitude < limitVelocityMagnitude)
+        if (threadCounter == 0 && timeCount >= markerDetectorPauseTime && 
+            arCamera.velocity.magnitude <= maxPositionChangePerFrame && cameraPoseTracker.rotationChange <= maxRotationChangePerFrameDegrees)
         {
             //Debug.Log("Incrementing thread counter");
             imgBuffer.CopyTo(img);
