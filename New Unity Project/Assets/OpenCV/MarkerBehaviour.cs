@@ -113,7 +113,9 @@ public class MarkerBehaviour : MonoBehaviour
     {
         Matrix4x4 matrixY = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, -1, 1));
         Matrix4x4 matrixZ = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
-        currentTransformationMatrix = matrixY * transformMatrix * matrixZ;
+        Matrix4x4 matrixX = Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(-90,0,0), new Vector3(1, 1, 1));
+        
+        currentTransformationMatrix = (matrixY * transformMatrix * matrixZ) * matrixX;
 
 
         Matrix4x4 r = Matrix4x4.Rotate(Quaternion.Euler(additionalRotation.GetValueOrDefault(Vector3.zero)));

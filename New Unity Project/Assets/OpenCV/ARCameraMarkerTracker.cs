@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class ARCameraMarkerTracker : ARCameraTracker
 {
@@ -10,6 +12,10 @@ public class ARCameraMarkerTracker : ARCameraTracker
     public float minAngle = 75;
 
     private Pose oldPose = new Pose();
+
+    public bool applyDirectionFilter = false;
+
+    private List<MarkerBehaviour> markersCache = new List<MarkerBehaviour>();
 
     protected override void RepositionCamera()
     {
@@ -52,12 +58,36 @@ public class ARCameraMarkerTracker : ARCameraTracker
         MarkerBehaviour closestMarker = null;
         float closestDistance = Mathf.Infinity;
 
-        foreach (int i in markerIds)
+        markersCache.Clear();
+
+        if (applyDirectionFilter)
         {
-            MarkerBehaviour m = MarkerManager.GetMarker(i);
+            foreach (int i in markerIds)
+            {
+                MarkerBehaviour m = MarkerManager.GetMarker(i);
+                Debug.DrawLine(m.transform.position,m.transform.position + transform.forward,Color.green,200);
+                if (m == null) continue;
+                
+                if (Vector3.Dot(transform.forward, m.transform.forward) >= 0)
+                {
+                    markersCache.Add(m);
+                }
+            }
+        }
+        else
+        {
+            foreach (int i in markerIds)
+            {
+                MarkerBehaviour m = MarkerManager.GetMarker(i);
 
-            if (m == null) continue;
-
+                if (m == null) continue;
+                    
+                markersCache.Add(m);
+            }
+        }
+        
+        foreach (MarkerBehaviour m in markersCache)
+        {
             //Debug.Log("IDD: " + i);
             if (GetMarkerDistanceFromCamera(m) < closestDistance)
             {
@@ -82,11 +112,6 @@ public class ARCameraMarkerTracker : ARCameraTracker
         float difference = Mathf.Abs(d1 - d2);
         //Debug.Log(difference);
         if (difference > 0.1) trackingTarget = closestMarker;
-    }
-
-    protected override void UpdateCameraPose(int[] ids)
-    {
-        base.UpdateCameraPose(ids);
     }
 
     protected override void StopUpdatingCameraPose(int[] ids)
