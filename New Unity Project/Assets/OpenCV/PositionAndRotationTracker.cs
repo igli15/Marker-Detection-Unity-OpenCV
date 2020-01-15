@@ -29,6 +29,6 @@ public class PositionAndRotationTracker : MonoBehaviour
         oldRotation = transform.rotation;
         
         //Debug.Log(positionChange);
-        Debug.Log(rotationChange);
+        //Debug.Log(rotationChange);
     }
 }

@@ -1,19 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SpatialTracking;
 
 public class ARCameraMarkerTracker : ARCameraTracker
 {
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
-    
+
     public float maxAngle = 100;
     public float minAngle = 75;
 
     private Pose oldPose = new Pose();
-
-    public bool applyDirectionFilter = false;
+    
+    [Range(-1,1)]
+    public float minDirectionDotProductValue = -1;
 
     private List<MarkerBehaviour> markersCache = new List<MarkerBehaviour>();
 
@@ -28,22 +30,13 @@ public class ARCameraMarkerTracker : ARCameraTracker
         oldPose.position = transform.position;
         oldPose.rotation = transform.rotation;
 
-        Matrix4x4 m = trackingTarget.GetMatrix();
-        Matrix4x4 inverseMat = m.inverse;
-
-        currentTrackedMarkerTransform.transform.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
-        currentTrackedMarkerTransform.transform.position = trackingTarget.transform.position;
-        currentTrackedMarkerTransform.transform.position += ARucoUnityHelper.GetPosition(inverseMat);
-
-        Matrix4x4 camMat = Matrix4x4.TRS(arCamera.transform.localPosition, arCamera.transform.localRotation,
-            arCamera.transform.localScale);
+        Matrix4x4 newHolder = GetPoseMatrix(trackingTarget);
         
-        Matrix4x4 newHolder =
-            currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse;
+        //set position and rotation
         transform.SetPositionAndRotation(newHolder.GetColumn(3), newHolder.rotation);
 
+        //Check if it flipped if so go back to old pose position and rotation
         float angle = Vector3.Angle(transform.up, -trackingTarget.transform.forward);
-
         if (angle >= maxAngle || angle < minAngle)
         {
             transform.SetPositionAndRotation(oldPose.position,oldPose.rotation);
@@ -51,37 +44,89 @@ public class ARCameraMarkerTracker : ARCameraTracker
     }
 
 
+    //Calculates the matrix needed to place the camera in front of the marker.
+    private Matrix4x4 GetPoseMatrix(MarkerBehaviour marker)
+    {
+        Pose targetPose = GetTargetPose(marker);
+
+        currentTrackedMarkerTransform.SetPositionAndRotation(targetPose.position,targetPose.rotation);
+
+        Matrix4x4 camMat = Matrix4x4.TRS(arCamera.transform.localPosition, arCamera.transform.localRotation,
+            arCamera.transform.localScale);
+        
+        Matrix4x4 newHolder =
+            currentTrackedMarkerTransform.localToWorldMatrix * camMat.inverse;
+
+        return newHolder;
+    }
+
+    //Calculates the target pose for the camera in order to appear in front of the marker.
+    private Pose GetTargetPose(MarkerBehaviour marker)
+    {
+        Matrix4x4 m = marker.GetMatrix();
+        Matrix4x4 inverseMat = m.inverse;
+        Pose p = new Pose();
+        p.rotation = ARucoUnityHelper.GetQuaternion(inverseMat);
+        p.position = marker.transform.position;
+        p.position += ARucoUnityHelper.GetPosition(inverseMat);
+        
+        return p;
+    }
+
+
     protected override void ConcentrateOnTheClosestMarker(int[] markerIds)
     {
-        //if(trackingTarget != null)Debug.Log(trackingTarget.GetMarkerID());
-
         MarkerBehaviour closestMarker = null;
         float closestDistance = Mathf.Infinity;
 
         markersCache.Clear();
 
-        if (applyDirectionFilter)
-        {
-            foreach (int i in markerIds)
-            {
-                MarkerBehaviour m = MarkerManager.GetMarker(i);
-                Debug.DrawLine(m.transform.position,m.transform.position + transform.forward,Color.green,200);
-                if (m == null) continue;
-                
-                if (Vector3.Dot(transform.forward, m.transform.forward) >= 0)
-                {
-                    markersCache.Add(m);
-                }
-            }
-        }
-        else
+        Vector3 oldPos = transform.position;
+        Quaternion oldRotation = transform.rotation;
+        
+        if (minDirectionDotProductValue >= -0.9f)
         {
             foreach (int i in markerIds)
             {
                 MarkerBehaviour m = MarkerManager.GetMarker(i);
 
                 if (m == null) continue;
-                    
+
+                Pose targetPose = GetTargetPose(m);
+                
+                transform.SetPositionAndRotation(targetPose.position,targetPose.rotation);
+
+                Vector3 cameraForward = new Vector3(transform.forward.x,0,transform.forward.z);
+                Vector3 markerForward = new Vector3(m.transform.forward.x,0,m.transform.forward.z);
+                
+                float dot = Vector3.Dot(cameraForward,markerForward);
+                
+               // Debug.Log("DOT: " + dot);
+                
+                if (dot > 0)
+                {
+                    markersCache.Add(m);
+                }
+                else
+                {
+                    if (trackingTarget != null && m.GetMarkerID() == trackingTarget.GetMarkerID())
+                    {
+                        trackingTarget = null;
+                    }
+                }
+            }
+        }
+        
+        transform.SetPositionAndRotation(oldPos,oldRotation);
+
+        if (markersCache.Count == 0 || minDirectionDotProductValue < -0.9f)
+        {
+            foreach (int i in markerIds)
+            {
+                MarkerBehaviour m = MarkerManager.GetMarker(i);
+                
+                if (m == null) continue;
+
                 markersCache.Add(m);
             }
         }
@@ -97,7 +142,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
             // Debug.Log("ID: " + i + " " + "Distance: " + GetMarkerDistanceFromCamera(m));
         }
-
+        
         if (closestMarker == null) return;
 
         if (trackingTarget == null)
