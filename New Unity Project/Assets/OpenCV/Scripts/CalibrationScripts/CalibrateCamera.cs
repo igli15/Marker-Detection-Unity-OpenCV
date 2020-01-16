@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -16,16 +15,14 @@ using ThreadPriority = System.Threading.ThreadPriority;
 public class CalibrateCamera : MonoBehaviour
 {
     public WebCamera webCamera;
-
-    [Title("Calibration Settings", null, TitleAlignments.Centered)]
+    
     public int boardWidth;
 
     public int boardHeight;
     public float squareSizeMeters;
     public OpenCvSharp.CalibrationFlags calibrationFlags;
     public CalibrationData calibrationData;
-
-    [Title("Variables", null, TitleAlignments.Centered)]
+    
     public StringVariable patternSizeString;
 
     private DetectorParameters detectorParameters;

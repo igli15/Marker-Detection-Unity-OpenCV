@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PositionAndRotationTracker : MonoBehaviour
@@ -9,9 +8,10 @@ public class PositionAndRotationTracker : MonoBehaviour
     private Quaternion oldRotation;
     private Vector3 oldPosition;
 
-    [ReadOnly]
+    [HideInInspector]
     public float positionChange;
-    [ReadOnly]
+
+    [HideInInspector]
     public float rotationChange;
 
     private void Start()

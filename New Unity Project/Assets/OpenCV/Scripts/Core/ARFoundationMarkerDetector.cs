@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Aruco;
-using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -30,12 +29,10 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
     public bool UseCustomCalibration = false;
     
-    [ShowIf("UseCustomCalibration")]
     public CalibrationData calibrationData;
 
     public bool showOpenCvTexture = false;
-
-    [ShowIf("showOpenCvTexture")]
+    
     public RawImage openCvTexture;
 
 

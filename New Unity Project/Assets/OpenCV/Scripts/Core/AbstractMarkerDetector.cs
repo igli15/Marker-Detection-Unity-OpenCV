@@ -45,7 +45,6 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     [FormerlySerializedAs("detectionParams")] public DetectionParameters detectionParamsStruct;
     
-    [Sirenix.OdinInspector.ReadOnly] [SerializeField]
     protected float timeCount = 0;
     
     private DetectorParameters detectorParameters;
