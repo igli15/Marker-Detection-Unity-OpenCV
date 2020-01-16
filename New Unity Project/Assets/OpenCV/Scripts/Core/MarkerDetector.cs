@@ -31,8 +31,7 @@ public class MarkerDetector : AbstractMarkerDetector
     {
         webCamera.OnProcessTexture -= ProcessTexture;
     }
-
-    // Our sketch generation function
+    
     private bool ProcessTexture(WebCamTexture input, ref Texture2D output,
         ARucoUnityHelper.TextureConversionParams textureParameters)
     {

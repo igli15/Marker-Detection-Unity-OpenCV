@@ -8,10 +8,10 @@ public class ARCameraMarkerTracker : ARCameraTracker
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
     public Transform currentTrackedMarkerTransform;
-
+    
     public float maxAngle = 100;
     public float minAngle = 75;
-
+    
     private Pose oldPose = new Pose();
     
     [Range(-1,1)]
@@ -50,7 +50,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
         Pose targetPose = GetTargetPose(marker);
 
         currentTrackedMarkerTransform.SetPositionAndRotation(targetPose.position,targetPose.rotation);
-
+        
         Matrix4x4 camMat = Matrix4x4.TRS(arCamera.transform.localPosition, arCamera.transform.localRotation,
             arCamera.transform.localScale);
         
@@ -80,12 +80,13 @@ public class ARCameraMarkerTracker : ARCameraTracker
         float closestDistance = Mathf.Infinity;
 
         markersCache.Clear();
-
-        Vector3 oldPos = transform.position;
-        Quaternion oldRotation = transform.rotation;
         
         if (minDirectionDotProductValue >= -0.9f)
         {
+            Vector3 oldPos = transform.position;
+            Quaternion oldRotation = transform.rotation;
+
+            
             foreach (int i in markerIds)
             {
                 MarkerBehaviour m = MarkerManager.GetMarker(i);
@@ -115,9 +116,9 @@ public class ARCameraMarkerTracker : ARCameraTracker
                     }
                 }
             }
+            
+            transform.SetPositionAndRotation(oldPos,oldRotation);
         }
-        
-        transform.SetPositionAndRotation(oldPos,oldRotation);
 
         if (markersCache.Count == 0 || minDirectionDotProductValue < -0.9f)
         {
@@ -148,6 +149,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
         if (trackingTarget == null)
         {
             trackingTarget = closestMarker;
+            Debug.Log("here");
             return;
         }
 
