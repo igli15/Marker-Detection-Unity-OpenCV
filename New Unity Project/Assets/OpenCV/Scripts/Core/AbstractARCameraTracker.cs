@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ARCameraTracker : MonoBehaviour
+public abstract class AbstractARCameraTracker : MonoBehaviour
 {
     //protected Camera arCam;
     

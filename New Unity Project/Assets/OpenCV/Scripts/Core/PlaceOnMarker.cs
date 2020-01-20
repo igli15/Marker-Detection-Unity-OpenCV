@@ -7,6 +7,7 @@ public class PlaceOnMarker : MonoBehaviour
     public MarkerBehaviour marker;
     public GameObject obj;
 
+    //needed since we cant set active from another thread. All the callbacks are thrown from the marker detection thread.
     private bool active = false;
     
     private void Start()

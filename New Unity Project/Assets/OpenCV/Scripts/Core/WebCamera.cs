@@ -25,11 +25,7 @@ public class WebCamera : MonoBehaviour
 
     public delegate void OnTextureResolutionChangedDelegate(int newWidth, int newHeight);
     public event OnTextureResolutionChangedDelegate OnTextureResolutionChanged;
-
-
-    private float dtCounter = 0;
-    private int callCount = 0;
-    private int maxCallCount = 0;
+    
     
     protected virtual void Start()
     {
@@ -43,25 +39,30 @@ public class WebCamera : MonoBehaviour
 
     public void SetUpPhysicalCamera(int deviceIndex)
     {
+        //check for physical cameras
         if (WebCamTexture.devices.Length <= 0)
         {
             Debug.LogWarning("No Camera Device Was Found!");
             return;
         }
 
+        //check if the provided index is correct
         if (deviceIndex >= WebCamTexture.devices.Length)
         {
             webCamDevice = null;
             Debug.LogError("There is no device with that index");
             return;
         }
-
+        
+        //Get the device
         webCamDevice = WebCamTexture.devices[deviceIndex];
 
+        //Create a WebCamTexture
         webCamTexture = new WebCamTexture(webCamDevice.Value.name,webCamSettings.requestedWidth,
             webCamSettings.requestedHeight, webCamSettings.TextureFPS);
 
-        ReadTextureConversionParameters();
+        
+        ApplyTextureConversionParameters();
 
         AssignNewCameraTextureResolution(webCamSettings.requestedWidth, webCamSettings.requestedHeight, true);
     }
@@ -92,39 +93,22 @@ public class WebCamera : MonoBehaviour
     private void Update()
     {
         if (webCamTexture.height < 100) return;
-
-
-        dtCounter += Time.deltaTime;
-        if (dtCounter > 1)
-        {
-            maxCallCount = callCount;
-            dtCounter = 0;
-            callCount = 0;
-        }
-        //Debug.Log(dtCounter);
+        
         
         if (webCamTexture != null && webCamTexture.didUpdateThisFrame)
         {
-            ReadTextureConversionParameters();
+            ApplyTextureConversionParameters();
             
             if (OnProcessTexture != null && OnProcessTexture(webCamTexture, ref renderedTexture, textureParameters))
             {
-                if (dtCounter <= 1) callCount += 1;
                 RenderFrame();
             }
 
-            /*
-            if (ProcessTexture(webCamTexture,ref renderedTexture))
-            {
-                RenderFrame();
-            }
-            */
         }
         
     }
-
-    //protected abstract bool ProcessTexture(WebCamTexture input,ref Texture2D output);
-
+    
+    //Applies the raw image texture and its size
     private void RenderFrame()
     {
         if (renderedTexture != null)
@@ -137,8 +121,9 @@ public class WebCamera : MonoBehaviour
         }
     }
 
-    private void ReadTextureConversionParameters()
+    private void ApplyTextureConversionParameters()
     {
+        //Rotate the texture properly and fix mirroring issues
         textureParameters.FlipHorizontally = false;
         
         if (0 != webCamTexture.videoRotationAngle)
@@ -163,22 +148,5 @@ public class WebCamera : MonoBehaviour
         webCamTexture.Stop();
         webCamTexture = null;
         webCamDevice = null;
-    }
-    
-    void OnGUI()
-    {
-        int w = Screen.width, h = Screen.height;
- 
-        GUIStyle style = new GUIStyle();
- 
-        Rect rect = new Rect(0, 40, w, h * 2 / 100);
-        style.alignment = TextAnchor.UpperLeft;
-        style.fontSize = h * 2 / 100;
-        style.normal.textColor = new Color (0.0f, 1, 1, 1.0f);
-
-        string text = "Texture Update Rate: " + maxCallCount.ToString() + "\n" + "Texture Requested FPS: " + webCamSettings.TextureFPS.ToString() 
-            +"\n" + "WebCamTexture Dimensions: " + webCamTexture.width.ToString() + "x" + webCamTexture.height.ToString();
-        GUI.Label(rect, text, style);
-        
     }
 }

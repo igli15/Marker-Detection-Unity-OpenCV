@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SpatialTracking;
 
-public class ARCameraMarkerTracker : ARCameraTracker
+public class ARCameraMarkerTracker : AbstractARCameraTracker
 {
     private MarkerBehaviour trackingTarget;
     public Camera arCamera;
@@ -81,12 +81,12 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
         markersCache.Clear();
         
+        //Perform direction filtering
         if (minDirectionDotProductValue >= -0.9f)
         {
             Vector3 oldPos = transform.position;
             Quaternion oldRotation = transform.rotation;
 
-            
             foreach (int i in markerIds)
             {
                 MarkerBehaviour m = MarkerManager.GetMarker(i);
@@ -95,6 +95,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
                 Pose targetPose = GetTargetPose(m);
                 
+                //Move in the target pose before checking for direction
                 transform.SetPositionAndRotation(targetPose.position,targetPose.rotation);
 
                 Vector3 cameraForward = new Vector3(transform.forward.x,0,transform.forward.z);
@@ -106,6 +107,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
                 
                 if (dot > 0)
                 {
+                    //store the ones that we need
                     markersCache.Add(m);
                 }
                 else
@@ -117,9 +119,11 @@ public class ARCameraMarkerTracker : ARCameraTracker
                 }
             }
             
+            //move back where we were
             transform.SetPositionAndRotation(oldPos,oldRotation);
         }
 
+        // if we didnt find anything just check for the closest one
         if (markersCache.Count == 0 || minDirectionDotProductValue < -0.9f)
         {
             foreach (int i in markerIds)
@@ -132,6 +136,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
             }
         }
         
+        // go through the cache and check for the closest marker and make it the target marker
         foreach (MarkerBehaviour m in markersCache)
         {
             //Debug.Log("IDD: " + i);
@@ -167,6 +172,7 @@ public class ARCameraMarkerTracker : ARCameraTracker
 
         if (trackingTarget == null) return;
 
+        //set the tracking target to null if its one of the lost ids.
         for (int i = 0; i < ids.Length; i++)
         {
             if (ids[i] == trackingTarget.GetMarkerID())

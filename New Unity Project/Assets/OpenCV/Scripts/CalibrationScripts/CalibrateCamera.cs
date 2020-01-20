@@ -17,18 +17,16 @@ public class CalibrateCamera : MonoBehaviour
     public WebCamera webCamera;
     
     public int boardWidth;
-
     public int boardHeight;
     public float squareSizeMeters;
     public OpenCvSharp.CalibrationFlags calibrationFlags;
     public CalibrationData calibrationData;
     
     public StringVariable patternSizeString;
-
-    private DetectorParameters detectorParameters;
-    private Dictionary dictionary;
+    
     private Mat mat;
     private Mat grayMat = new Mat();
+    
     private float imageWidth;
     private float imageHeight;
 
@@ -36,7 +34,7 @@ public class CalibrateCamera : MonoBehaviour
     private List<Point2f> corners = new List<Point2f>();
     private List<Point3f> obj = new List<Point3f>();
 
-    private List<List<Point2f>> imagePoints = new List<List<Point2f>>();
+    private List<List<Point2f>> CornerPoints = new List<List<Point2f>>();
     private List<List<Point3f>> objPoints = new List<List<Point3f>>();
 
     private Thread calibrationThread = null;
@@ -47,8 +45,6 @@ public class CalibrateCamera : MonoBehaviour
 
     private bool calibrate = false;
 
-    //public static Mutex calibrationMutex = new Mutex();
-
     public static Action<CalibrationData> OnCalibrationFinished;
     public static Action OnCalibrationStarted;
     public static Action OnCalibrationReset;
@@ -57,15 +53,7 @@ public class CalibrateCamera : MonoBehaviour
     {
         calibrationData.LoadData();
 
-        // Create default parameres for detection
-        detectorParameters = DetectorParameters.Create();
-
-        // Dictionary holds set of all available markers
-        dictionary = CvAruco.GetPredefinedDictionary(PredefinedDictionaryName.Dict4X4_1000);
-
         boardSize = new Size(boardWidth, boardHeight);
-
-        //OnCalibrationFinished += delegate(CalibrationData data) {calibrationMutex.Dispose();  };
     }
 
     private void OnEnable()
@@ -77,7 +65,6 @@ public class CalibrateCamera : MonoBehaviour
     {
         if (objPoints.Count > 0 && calibrationThread == null)
         {
-            //boardWidth,boardHeight,ref objPoints,ref imagePoints,mat,calibrationData
             calibrationThread = new Thread(Calibrate);
             calibrationThread.Start();
             calibrationThread.Priority = ThreadPriority.Highest;
@@ -91,6 +78,7 @@ public class CalibrateCamera : MonoBehaviour
 
         if (OnCalibrationStarted != null) CalibrateCamera.OnCalibrationStarted();
 
+        //prepare the data which the calibration process will fill up
         int maxSize = (int) Mathf.Max(imageWidth, imageHeight);
         double fx = maxSize;
         double fy = maxSize;
@@ -114,8 +102,8 @@ public class CalibrateCamera : MonoBehaviour
         Size boardSize = new Size(boardWidth, boardHeight);
         try
         {
-            //mat.Size()
-            projectionError = Cv2.CalibrateCamera(objPoints, imagePoints, new Size(imageWidth, imageHeight), k, d,
+            // calibrate the camera
+            projectionError = Cv2.CalibrateCamera(objPoints, CornerPoints, new Size(imageWidth, imageHeight), k, d,
                 out rvec, out tvec,
                 calibrationFlags, TermCriteria.Both(30, 0.1));
             Debug.Log("Error: " + projectionError);
@@ -126,9 +114,10 @@ public class CalibrateCamera : MonoBehaviour
             Debug.Log("restarting...");
         }
 
-
+        //register the data and save them
         calibrationData.RegisterMatrix(k);
-        //calibrationData.RegisterDistortionCoefficients(d);
+        calibrationData.RegisterDistortionCoefficients(d);
+        
         calibrationData.projectionError = projectionError;
 
         string s = "";
@@ -147,11 +136,12 @@ public class CalibrateCamera : MonoBehaviour
 
         //calibrationMutex.ReleaseMutex();
     }
-
+    
+    //Stop the calibration thread and clear the data
     public void ResetCalibrationImmediate()
     {
         objPoints.Clear();
-        imagePoints.Clear();
+        CornerPoints.Clear();
         corners.Clear();
         obj.Clear();
 
@@ -162,6 +152,7 @@ public class CalibrateCamera : MonoBehaviour
         Debug.Log("Reseting....");
     }
 
+    //Capture a rendered texture frame and register the checkerboard pattern data
     public void RegisterCurrentCalib()
     {
         corners.Clear();
@@ -170,25 +161,29 @@ public class CalibrateCamera : MonoBehaviour
         //objPoints.Clear();
 
         bool b = false;
-
+        
+        //find the corners and populate the data for one sqaure
         b = Cv2.FindChessboardCorners(mat, boardSize, OutputArray.Create(corners),
             ChessboardFlags.AdaptiveThresh | ChessboardFlags.NormalizeImage | ChessboardFlags.FastCheck);
 
         if (!b) return;
-
+        
         Cv2.CornerSubPix(grayMat, corners, new Size(5, 5), new Size(-1, -1), TermCriteria.Both(30, 0.1));
         Debug.Log(b);
 
+        // for debug draw the found squares
         Cv2.DrawChessboardCorners(mat, boardSize, corners, b);
 
         for (int i = 0; i < boardSize.Height; i++)
         {
             for (int j = 0; j < boardSize.Width; j++)
             {
+                //add the space coordinates of the squares. Z = 0 since its  a flat plane.
                 obj.Add(new Point3f((float) j * squareSizeMeters, (float) i * squareSizeMeters, 0));
                 if (b)
                 {
-                    imagePoints.Add(corners);
+                    //register the data per square
+                    CornerPoints.Add(corners);
                     objPoints.Add(obj);
                 }
             }

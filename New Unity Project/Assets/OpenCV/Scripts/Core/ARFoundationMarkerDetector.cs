@@ -25,6 +25,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
     private Texture2D texture;
     
     ARucoUnityHelper.TextureConversionParams texParam;
+    
     private XRCameraIntrinsics cameraIntrinsics;
 
     public bool UseCustomCalibration = false;
@@ -52,6 +53,7 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
 
     unsafe void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
+        //Get the latest image
         XRCameraImage image;
         if (!cameraManager.TryGetLatestImage(out image))
         {
@@ -60,15 +62,19 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
         
         timeCount += Time.deltaTime;
         
+        //select the format of the texture
         var format = TextureFormat.RGBA32;
 
+        //check if the texture changed, and only if so create a new one with the new changes
         if (texture == null || texture.width != image.width || texture.height != image.height)
         {
             texture = new Texture2D(image.width, image.height, format, false);
         }
 
+        //mirror on the Y axis so that it fits open cv standarts
         var conversionParams = new XRCameraImageConversionParams(image, format, CameraImageTransformation.MirrorY);
 
+        // try to apply raw texture data to the texture
         var rawTextureData = texture.GetRawTextureData<byte>();
         try
         {
@@ -76,35 +82,37 @@ public class ARFoundationMarkerDetector : AbstractMarkerDetector
         }
         finally
         {
+            //every Mat must be released before new data is assigned!
             image.Dispose();
         }
 
+        //apply texture
         texture.Apply();
-
-        texParam.FlipHorizontally = false;
-
-        imgBuffer = ARucoUnityHelper.TextureToMat(texture, texParam);
-
-        //rotate(ref notRotated,ref imgBuffer, 90);
         
+        texParam.FlipHorizontally = false;
+        
+        //create a Mat class from the texture
+        imgBuffer = ARucoUnityHelper.TextureToMat(texture, texParam);
+        
+        // Increment thread counter 
         if (threadCounter == 0 && timeCount >= markerDetectorPauseTime && 
             arCamera.velocity.magnitude <= maxPositionChangePerFrame && cameraPoseTracker.rotationChange <= maxRotationChangePerFrameDegrees)
         {
-            //Debug.Log("Incrementing thread counter");
+            //copy the buffer data to the img Mat
             imgBuffer.CopyTo(img);
             Interlocked.Increment(ref threadCounter);
             timeCount = 0;
         }
         
-
-        //Debug.Log("ThreadCounter: " + threadCounter);
         updateThread = true;
 
+        //Show the texture if needed
         if (showOpenCvTexture)
         {
             openCvTexture.texture = ARucoUnityHelper.MatToTexture(imgBuffer, texture);
         }
 
+        //release imgBuffer Mat
         imgBuffer.Release();
     }
     protected override void CheckIfDetectedMarkers()

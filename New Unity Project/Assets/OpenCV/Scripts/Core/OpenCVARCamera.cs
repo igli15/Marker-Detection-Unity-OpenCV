@@ -8,10 +8,9 @@ using UnityEngine.UI;
 using Matrix4x4 = UnityEngine.Matrix4x4;
 using Vector2 = UnityEngine.Vector2;
 
-public class ARCamera : MonoBehaviour
+public class OpenCVARCamera : MonoBehaviour
 {
     public Camera arCam;
-    public Camera webCam;
     public GameObject outputImage;
     public CalibrationData calibrationData;
     private RectTransform imageRectTransform;
@@ -32,6 +31,7 @@ public class ARCamera : MonoBehaviour
     {
         if (imageRectTransform.sizeDelta.x < 100) return;
         
+        //Calibrate only if the size of the texture changed
         oldRectSize = imageRectTransform.sizeDelta;
         if (Screen.width != currentScreenSize.x || Screen.height != currentScreenSize.y || currentRectSize.x != oldRectSize.x || currentRectSize.y != oldRectSize.y) 
         {
@@ -42,33 +42,25 @@ public class ARCamera : MonoBehaviour
         }
     }
 
-
+    //Calibrates the scene camera based on web cam calibration data
     void Calibrate()
     {
         float width = currentRectSize.x;
         float height = currentRectSize.y;
-        
-        
+
         float imgScale = 1.0f;
     
+        //Do nothing if the texture is wrong
         if (width <= 0 || height <= 0) return;
         
+        //Get the screen/texture ratios
         float widthScale = (float)Screen.width / width;
         float heightScale = (float) Screen.height / height;
-        
-        /*
-        if (widthScale < heightScale) 
-        {
-            webCam.orthographicSize = (width * (float)Screen.height / (float)Screen.width) / 2;
-            imgScale = (float)Screen.height / (float)Screen.width;
-        } else 
-        {
-            webCam.orthographicSize = height / 2;
-        }
-        */
 
         float aspect = 1;
         Size imgSize;
+        
+        //Get the aspect ratio
         if (widthScale < heightScale)
         {
             aspect = heightScale;
@@ -78,31 +70,26 @@ public class ARCamera : MonoBehaviour
         {
             float k = (float) Screen.height / (float)Screen.width;
             imgSize = new Size(width ,width * k );
-            //webCam.orthographicSize = height / 2;
             aspect = widthScale;
         }
+        
+        //scale to fit the aspect ratio
         outputImage.transform.localScale = new UnityEngine.Vector3(aspect,aspect,1);
         
+        //prepare the data for the calibration
         int maxSize = (int)Mathf.Max(width, height);
+        
         double fx = maxSize;
         double fy = maxSize;
 
+        //Principal Point
         double cx = width / 2;
         double cy = height / 2;
-
-        /*
-        double[,] cameraMatrix = new double[3, 3] {
-            {fx, 0d, cx},
-            {0d, fy, cy},
-            {0d, 0d, 1d}
-        };
-        */
+        
         double[,] cameraMatrix = new Double[3,3];
+        
         cameraMatrix = calibrationData.GetCameraMatrix(ref cameraMatrix);
-        
-        //Debug.Log(cameraMatrix[0,0]);
-        
-        
+
         double apertureWidth = 0;
         double apertureHeight = 0;
         double fovx = -1;
@@ -110,7 +97,8 @@ public class ARCamera : MonoBehaviour
         double focalLength = -1;
         Point2d principalPoint = new Point (0, 0);
         double aspectratio = -1;
-        //Cv2.CalibrateCamera()
+        
+        //Do the camera calibration
         Cv2.CalibrationMatrixValues (cameraMatrix, imgSize, apertureWidth, apertureHeight, 
             out fovx, out fovy, out focalLength, out principalPoint, out aspectratio);
 
@@ -119,20 +107,10 @@ public class ARCamera : MonoBehaviour
         cx = cameraMatrix[0, 2];
         cy = cameraMatrix[1, 2];
         
-        double fovXScale = (2.0 * Mathf.Atan ((float)(imgSize.Width / (2.0 * fx)))) / (Mathf.Atan2 ((float)cx, (float)fx) + Mathf.Atan2 ((float)(imgSize.Width - cx), (float)fx));
+        //Get the fov scale 
         double fovYScale = (2.0 * Mathf.Atan ((float)(imgSize.Height / (2.0 * fy)))) / (Mathf.Atan2 ((float)cy, (float)fy) + Mathf.Atan2 ((float)(imgSize.Height - cy), (float)fy));
-            
-       
-        /*
-        if (widthScale < heightScale) {
-            arCam.fieldOfView = (float)(fovx * fovXScale);
-        } else {
-            arCam.fieldOfView = (float)(fovy * fovYScale);
-        }
-          */  
-            
+        
         arCam.fieldOfView = (float)fovy * (float)fovYScale;
-        //arCam.aspect = (float)aspectratio;
 
     }
     

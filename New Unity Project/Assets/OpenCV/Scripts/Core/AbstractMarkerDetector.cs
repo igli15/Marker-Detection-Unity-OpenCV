@@ -6,10 +6,12 @@ using OpenCvSharp;
 using OpenCvSharp.Aruco;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.XR.ARSubsystems;
 
 public abstract class AbstractMarkerDetector : MonoBehaviour
 {
     [Serializable]
+    //The comments are the open cv default values of the parameters
     public struct DetectionParameters
     {
         public int adaptiveThreshWinSizeMin; //3
@@ -36,8 +38,6 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     public static event Action<int[]> OnMarkersDetected;
     public static event Action<int[]> OnMarkersLost;
 
-    public static Action<int[]> OnMarkerDetectionPaused;
-
     public PredefinedDictionaryName markerDictionaryType;
     [SerializeField] private bool doCornerRefinement = true;
     public bool throwMarkerCallbacks = true;
@@ -56,7 +56,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
     protected Mat imgBuffer;
 
     protected Dictionary<int, MarkerBehaviour> allDetectedMarkers = new Dictionary<int, MarkerBehaviour>();
-    private List<int> lostIds = new List<int>();
+    protected List<int> lostIds = new List<int>();
 
     protected Point2f[][] corners;
     protected int[] ids;
@@ -72,10 +72,11 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     protected virtual void Init()
     {
+        //For mobile devices which by default have their target frame set to 30
         Application.targetFrameRate = 60;
         
+        //create OpenCV detector parameters
         detectorParameters = DetectorParameters.Create();
-
         detectorParameters.DoCornerRefinement = doCornerRefinement;
         //Apply different detection parameters
         AssignDetectorParameterStructValues();
@@ -84,6 +85,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
         
         timeCount = markerDetectorPauseTime;
         
+        //start the marker thread
         DetectMarkerAsync();
         
     }
@@ -111,15 +113,15 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        //Abort the thread when the application stops
        if(detectMarkersThread.IsAlive) detectMarkersThread.Abort();
     }
-    
-    
 
     private void DetectMarkers()
     {
         while (true)
         {
+            //On android if there isn't a DebugLog or smth going on here then the thread wont start for some reason.
             #if UNITY_ANDROID
             Debug.Log("Updating...");
             #endif
@@ -129,31 +131,32 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
                 //we skip updating the thread when not needed and also avoids memory exceptions when we disable the 
                 //mono behaviour or we haven't updated the main thread yet!
                 
-                //Debug.Log("SKIPPED");
                 continue;
             }
 
             if (threadCounter > 0)
             {
-                //Debug.Log("Detecting Markers");
+                //Gray out the image
                 Cv2.CvtColor(img, grayedImg, ColorConversionCodes.BGR2GRAY);
 
+                //detect the markers and fill the corner and id arrays
                 CvAruco.DetectMarkers(grayedImg, dictionary, out corners, out ids, detectorParameters,
                     out rejectedImgPoints);
                 
-
+                //throw the callbacks
                 if (throwMarkerCallbacks)
                 {
                     CheckIfLostMarkers();
                     CheckIfDetectedMarkers();
                 }
                 
+                //let the main thread know the process is done
                 outputImage = true;
                 Interlocked.Exchange(ref threadCounter, 0);
             }
         }
     }
-    
+
     protected virtual void CheckIfLostMarkers()
     {
         if (ids == null) return;
@@ -202,7 +205,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
 
         lostIds.Clear();
     }
-
+    
     protected virtual void CheckIfDetectedMarkers()
     {
         if(ids == null) return;
@@ -225,6 +228,7 @@ public abstract class AbstractMarkerDetector : MonoBehaviour
         }
     }
 
+    //assigns the "detectionParamsStruct" struct values to the open cv detection parameter class.
     private void AssignDetectorParameterStructValues()
     {
         detectorParameters.AdaptiveThreshWinSizeMin = detectionParamsStruct.adaptiveThreshWinSizeMin;

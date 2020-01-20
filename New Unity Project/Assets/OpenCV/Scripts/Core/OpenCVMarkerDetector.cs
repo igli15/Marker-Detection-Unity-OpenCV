@@ -6,10 +6,9 @@ using System.Threading;
 using UnityEngine;
 using ThreadPriority = System.Threading.ThreadPriority;
 
-public class MarkerDetector : AbstractMarkerDetector
+public class OpenCVMarkerDetector : AbstractMarkerDetector
 {
     public WebCamera webCamera;
-    public Camera cam;
 
     public bool drawMarkerOutlines = false;
 
